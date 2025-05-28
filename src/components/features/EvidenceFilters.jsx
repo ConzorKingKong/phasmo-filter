@@ -13,7 +13,7 @@ import { useApp } from '../../context/AppContext';
 const EvidenceFilters = () => {
   const { 
     selectedEvidence, 
-    setSelectedEvidence,
+    setSelectedEvidence, 
     selectedSpeed,
     setSelectedSpeed,
     selectedHuntEvidence,
@@ -320,7 +320,7 @@ const EvidenceFilters = () => {
 
       <Box sx={{ flexGrow: 1, overflow: 'auto' }}>
         {activeTab === 0 ? (
-          <Box sx={{ p: 2 }}>
+    <Box sx={{ p: 2 }}>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
               <Typography variant="h6" gutterBottom>
                 Evidence Filters
@@ -385,39 +385,39 @@ const EvidenceFilters = () => {
               }}
             />
 
-            <Typography variant="h6" gutterBottom>
+      <Typography variant="h6" gutterBottom>
               Evidence
-            </Typography>
+      </Typography>
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, mb: 2 }}>
-              {[
+        {[
                 'EMF 5',
-                'Spirit Box',
-                'Ultraviolet',
+          'Spirit Box',
+          'Ultraviolet',
                 'Ghost Orbs',
                 'Writing',
                 'Freezing',
                 'DOTs'
-              ].map((evidence) => (
-                <FormControlLabel
-                  key={evidence}
-                  control={
-                    <Checkbox
-                      checked={selectedEvidence[evidence] === true}
-                      indeterminate={selectedEvidence[evidence] === false}
-                      onChange={() => handleEvidenceClick(evidence)}
-                      sx={{
-                        '&.MuiCheckbox-root': {
-                          color: 'text.secondary',
-                        },
-                        '&.Mui-checked': {
-                          color: 'success.main',
-                        },
-                        '&.MuiCheckbox-indeterminate': {
-                          color: 'error.main',
-                        }
-                      }}
-                    />
+        ].map((evidence) => (
+          <FormControlLabel
+            key={evidence}
+            control={
+              <Checkbox
+                checked={selectedEvidence[evidence] === true}
+                indeterminate={selectedEvidence[evidence] === false}
+                onChange={() => handleEvidenceClick(evidence)}
+                sx={{
+                  '&.MuiCheckbox-root': {
+                    color: 'text.secondary',
+                  },
+                  '&.Mui-checked': {
+                    color: 'success.main',
+                  },
+                  '&.MuiCheckbox-indeterminate': {
+                    color: 'error.main',
                   }
+                }}
+              />
+            }
                   label={
                     <Box sx={{ display: 'flex', alignItems: 'center' }}>
                       {getEvidenceLabel(evidence)}
@@ -433,15 +433,15 @@ const EvidenceFilters = () => {
                       )}
                     </Box>
                   }
-                  sx={{
-                    '& .MuiFormControlLabel-label': {
-                      color: getEvidenceState(evidence) === 'excluded' ? 'error.main' :
-                             getEvidenceState(evidence) === 'included' ? 'success.main' :
-                             'text.primary'
-                    }
-                  }}
-                />
-              ))}
+            sx={{
+              '& .MuiFormControlLabel-label': {
+                color: getEvidenceState(evidence) === 'excluded' ? 'error.main' :
+                       getEvidenceState(evidence) === 'included' ? 'success.main' :
+                       'text.primary'
+              }
+            }}
+          />
+        ))}
             </Box>
 
             <Divider sx={{ my: 2 }} />

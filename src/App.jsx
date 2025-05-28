@@ -80,7 +80,9 @@ function App() {
                     display: { xs: 'block', sm: 'none' },
                     '& .MuiDrawer-paper': { 
                       boxSizing: 'border-box', 
-                      width: 320,
+                      width: 'auto',
+                      minWidth: 280,
+                      maxWidth: '85%',
                       backgroundColor: 'background.paper'
                     },
                   }}
@@ -106,8 +108,8 @@ function App() {
               component="main"
               sx={{
                 flexGrow: 1,
-                p: 3,
-                width: { sm: `calc(100% - 320px)` },
+                p: { xs: 2, sm: 3 },
+                width: { xs: '100%', sm: `calc(100% - 320px)` },
                 height: '100%',
                 overflow: 'auto'
               }}
