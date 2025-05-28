@@ -6,6 +6,8 @@ import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import PauseIcon from '@mui/icons-material/Pause';
 import StopIcon from '@mui/icons-material/Stop';
 import CloseIcon from '@mui/icons-material/Close';
+import RestartAltIcon from '@mui/icons-material/RestartAlt';
+import FilterAltIcon from '@mui/icons-material/FilterAlt';
 import { useApp } from '../../context/AppContext';
 
 const EvidenceFilters = () => {
@@ -26,6 +28,7 @@ const EvidenceFilters = () => {
   const [timeLeft, setTimeLeft] = useState(180); // 3 minutes in seconds
   const [isHuntCooldownPlaying, setIsHuntCooldownPlaying] = useState(false);
   const [huntCooldownTimeLeft, setHuntCooldownTimeLeft] = useState(25); // 25 seconds
+  const [huntEvidenceSearch, setHuntEvidenceSearch] = useState('');
   const timerRef = useRef(null);
   const huntCooldownTimerRef = useRef(null);
   const startSoundRef = useRef(new Audio('/sounds/start.mp3'));
@@ -140,7 +143,7 @@ const EvidenceFilters = () => {
     const labels = {
       'EMF 5': 'EMF Level 5',
       'Spirit Box': 'Spirit Box',
-      'Ultraviolet': 'Fingerprints',
+      'Ultraviolet': 'Ultraviolet',
       'Ghost Orbs': 'Ghost Orb',
       'Writing': 'Ghost Writing',
       'Freezing': 'Freezing Temperatures',
@@ -256,6 +259,54 @@ const EvidenceFilters = () => {
     { id: 'speed_when_hiding', label: 'Slow when hiding, fast when it sees you', ghost: 'Revenant' }
   ];
 
+  const isEvidenceInSearchResults = (evidence) => {
+    if (!searchQuery) return false;
+    return ghosts.some(ghost => 
+      ghost.ghost.toLowerCase().includes(searchQuery.toLowerCase()) && 
+      ghost.evidence.includes(evidence)
+    );
+  };
+
+  const isSpeedInSearchResults = (speedType) => {
+    if (!searchQuery) return false;
+    return ghosts.some(ghost => {
+      if (!ghost.ghost.toLowerCase().includes(searchQuery.toLowerCase())) return false;
+      
+      const minSpeed = parseFloat(ghost.min_speed);
+      const maxSpeed = parseFloat(ghost.max_speed);
+      const altSpeed = parseFloat(ghost.alt_speed);
+      const normalSpeed = 1.7;
+      
+      const speeds = [];
+      if (!isNaN(minSpeed)) speeds.push(minSpeed);
+      if (!isNaN(maxSpeed)) speeds.push(maxSpeed);
+      if (!isNaN(altSpeed)) speeds.push(altSpeed);
+      
+      if (speeds.length === 0) return false;
+      
+      switch (speedType) {
+        case 'slow':
+          return speeds.some(speed => speed < normalSpeed);
+        case 'normal':
+          return speeds.every(speed => speed === normalSpeed);
+        case 'fast':
+          return speeds.some(speed => speed > normalSpeed);
+        case 'los':
+          return ghost.has_los === true;
+      }
+      return false;
+    });
+  };
+
+  const isHuntEvidenceInSearchResults = (evidence) => {
+    if (!searchQuery) return false;
+    const ghostName = huntEvidenceList.find(e => e.id === evidence)?.ghost;
+    return ghosts.some(ghost => 
+      ghost.ghost.toLowerCase().includes(searchQuery.toLowerCase()) && 
+      ghost.ghost === ghostName
+    );
+  };
+
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
       <Tabs 
@@ -270,6 +321,43 @@ const EvidenceFilters = () => {
       <Box sx={{ flexGrow: 1, overflow: 'auto' }}>
         {activeTab === 0 ? (
           <Box sx={{ p: 2 }}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+              <Typography variant="h6" gutterBottom>
+                Evidence Filters
+              </Typography>
+              <Button
+                variant="outlined"
+                color="secondary"
+                onClick={() => {
+                  // Reset all evidence states
+                  const resetEvidence = Object.keys(selectedEvidence).reduce((acc, key) => {
+                    acc[key] = undefined;
+                    return acc;
+                  }, {});
+                  setSelectedEvidence(resetEvidence);
+
+                  // Reset all speed states
+                  const resetSpeed = Object.keys(selectedSpeed).reduce((acc, key) => {
+                    acc[key] = undefined;
+                    return acc;
+                  }, {});
+                  setSelectedSpeed(resetSpeed);
+
+                  // Reset all hunt evidence states
+                  const resetHuntEvidence = Object.keys(selectedHuntEvidence).reduce((acc, key) => {
+                    acc[key] = undefined;
+                    return acc;
+                  }, {});
+                  setSelectedHuntEvidence(resetHuntEvidence);
+
+                  // Clear search
+                  setSearchQuery('');
+                }}
+                startIcon={<RestartAltIcon />}
+              >
+                Reset All
+              </Button>
+            </Box>
             <TextField
               fullWidth
               variant="outlined"
@@ -330,7 +418,21 @@ const EvidenceFilters = () => {
                       }}
                     />
                   }
-                  label={getEvidenceLabel(evidence)}
+                  label={
+                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                      {getEvidenceLabel(evidence)}
+                      {isEvidenceInSearchResults(evidence) && (
+                        <FilterAltIcon 
+                          sx={{ 
+                            ml: 1, 
+                            fontSize: '1rem',
+                            color: 'primary.main',
+                            opacity: 0.7
+                          }} 
+                        />
+                      )}
+                    </Box>
+                  }
                   sx={{
                     '& .MuiFormControlLabel-label': {
                       color: getEvidenceState(evidence) === 'excluded' ? 'error.main' :
@@ -374,7 +476,21 @@ const EvidenceFilters = () => {
                       }}
                     />
                   }
-                  label={speed.label}
+                  label={
+                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                      {speed.label}
+                      {isSpeedInSearchResults(speed.id) && (
+                        <FilterAltIcon 
+                          sx={{ 
+                            ml: 1, 
+                            fontSize: '1rem',
+                            color: 'primary.main',
+                            opacity: 0.7
+                          }} 
+                        />
+                      )}
+                    </Box>
+                  }
                   sx={{
                     '& .MuiFormControlLabel-label': {
                       color: getSpeedState(speed.id) === 'excluded' ? 'error.main' :
@@ -391,17 +507,59 @@ const EvidenceFilters = () => {
             <Typography variant="h6" gutterBottom>
               Hunt Evidence
             </Typography>
+            <TextField
+              fullWidth
+              variant="outlined"
+              placeholder="Search hunt evidence..."
+              value={huntEvidenceSearch}
+              onChange={(e) => setHuntEvidenceSearch(e.target.value)}
+              sx={{ mb: 2 }}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <SearchIcon />
+                  </InputAdornment>
+                ),
+                endAdornment: huntEvidenceSearch && (
+                  <InputAdornment position="end">
+                    <IconButton
+                      onClick={() => setHuntEvidenceSearch('')}
+                      edge="end"
+                      size="small"
+                    >
+                      <CloseIcon />
+                    </IconButton>
+                  </InputAdornment>
+                )
+              }}
+            />
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
               {huntEvidenceList
                 .slice()
                 .sort((a, b) => {
+                  // First sort by filtered status
                   const aFiltered = isGhostFilteredOut(a.ghost);
                   const bFiltered = isGhostFilteredOut(b.ghost);
-                  if (aFiltered === bFiltered) return 0;
-                  return aFiltered ? 1 : -1;
+                  if (aFiltered !== bFiltered) {
+                    return aFiltered ? 1 : -1;
+                  }
+
+                  // Then sort by search match
+                  const aMatchesSearch = huntEvidenceSearch && 
+                    a.label.toLowerCase().includes(huntEvidenceSearch.toLowerCase());
+                  const bMatchesSearch = huntEvidenceSearch && 
+                    b.label.toLowerCase().includes(huntEvidenceSearch.toLowerCase());
+                  if (aMatchesSearch !== bMatchesSearch) {
+                    return aMatchesSearch ? -1 : 1;
+                  }
+
+                  // Finally sort by original order
+                  return 0;
                 })
                 .map((evidence) => {
                   const isFiltered = isGhostFilteredOut(evidence.ghost);
+                  const matchesSearch = huntEvidenceSearch && 
+                    evidence.label.toLowerCase().includes(huntEvidenceSearch.toLowerCase());
                   return (
                     <FormControlLabel
                       key={evidence.id}
@@ -426,6 +584,26 @@ const EvidenceFilters = () => {
                       label={
                         <Box sx={{ display: 'flex', alignItems: 'center' }}>
                           {evidence.label}
+                          {isHuntEvidenceInSearchResults(evidence.id) && (
+                            <FilterAltIcon 
+                              sx={{ 
+                                ml: 1, 
+                                fontSize: '1rem',
+                                color: 'primary.main',
+                                opacity: 0.7
+                              }} 
+                            />
+                          )}
+                          {matchesSearch && (
+                            <SearchIcon 
+                              sx={{ 
+                                ml: 1, 
+                                fontSize: '1rem',
+                                color: 'primary.main',
+                                opacity: 0.7
+                              }} 
+                            />
+                          )}
                           {evidence.id === 'screams_parabolic' && (
                             <IconButton
                               onClick={playBansheeScream}

@@ -34,7 +34,7 @@ const GhostCards = () => {
     const labels = {
       'EMF 5': 'EMF Level 5',
       'Spirit Box': 'Spirit Box',
-      'Ultraviolet': 'Fingerprints',
+      'Ultraviolet': 'Ultraviolet',
       'Ghost Orbs': 'Ghost Orb',
       'Writing': 'Ghost Writing',
       'Freezing': 'Freezing Temperatures',
@@ -94,7 +94,7 @@ const GhostCards = () => {
       if (!isNaN(altSpeed)) speeds.push(altSpeed);
       
       if (speeds.length === 0) return true;
-      
+
       switch (speedType) {
         case 'slow':
           if (state === true) return speeds.some(speed => speed < normalSpeed);
@@ -206,7 +206,7 @@ const GhostCards = () => {
                   }} 
                 />
               )}
-              <CardContent>
+          <CardContent>
                 <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
                   <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
                     {ghost.ghost}
@@ -229,20 +229,20 @@ const GhostCards = () => {
                 {showDescriptions && (
                   <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
                     {ghost.description}
-                  </Typography>
+            </Typography>
                 )}
-                <Box sx={{ mb: 2 }}>
-                  <Typography variant="subtitle2" gutterBottom>
+            <Box sx={{ mb: 2 }}>
+              <Typography variant="subtitle2" gutterBottom>
                     Evidence
-                  </Typography>
+              </Typography>
                   <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-                    {ghost.evidence.map((evidence) => (
-                      <Chip
-                        key={evidence}
-                        label={getEvidenceLabel(evidence)}
-                        size="small"
-                      />
-                    ))}
+                {ghost.evidence.map((evidence) => (
+                  <Chip
+                    key={evidence}
+                    label={getEvidenceLabel(evidence)}
+                    size="small"
+                  />
+                ))}
                   </Box>
                 </Box>
                 <Divider sx={{ my: 1 }} />
@@ -265,7 +265,7 @@ const GhostCards = () => {
                     {ghost.alt_speed && ` (Alt: ${ghost.alt_speed} m/s)`}
                     {ghost.has_los && ' (Speeds up when line of sight)'}
                   </Typography>
-                </Box>
+            </Box>
                 <Divider sx={{ my: 1 }} />
                 <Box sx={{ mb: 1 }}>
                   <Typography variant="subtitle2">Extra Info</Typography>
@@ -284,13 +284,13 @@ const GhostCards = () => {
                       {ghost.wiki.abilities?.filter(t => t.include_on_card).map((t, i) => (
                         <Typography key={`a${i}`} variant="body2" sx={{ mb: 0.5 }}>
                           • {t.data}
-                        </Typography>
+            </Typography>
                       ))}
                     </>
                   )}
                 </Box>
-              </CardContent>
-            </Card>
+          </CardContent>
+        </Card>
           </Grid>
         );
       })}
