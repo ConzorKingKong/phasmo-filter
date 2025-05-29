@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { ThemeProvider, createTheme, useMediaQuery, useTheme, IconButton, Drawer, AppBar, Toolbar, Typography } from '@mui/material'
+import { ThemeProvider, createTheme, useMediaQuery, useTheme, IconButton, Drawer, AppBar, Toolbar, Typography, Tabs, Tab } from '@mui/material'
 import { BrowserRouter as Router } from 'react-router-dom'
 import CssBaseline from '@mui/material/CssBaseline'
 import Box from '@mui/material/Box'
@@ -25,14 +25,57 @@ function App() {
   }))
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'))
   const [mobileOpen, setMobileOpen] = useState(false)
+  const [activeTab, setActiveTab] = useState(0)
 
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen)
   }
 
+  const handleTabChange = (event, newValue) => {
+    setActiveTab(newValue)
+  }
+
   const drawer = (
-    <Box sx={{ width: 320, height: '100%' }}>
-      <EvidenceFilters />
+    <Box sx={{ width: 320, height: '100%', display: 'flex', flexDirection: 'column' }}>
+      <Tabs 
+        value={activeTab} 
+        onChange={handleTabChange}
+        sx={{ borderBottom: 1, borderColor: 'divider' }}
+      >
+        <Tab label="Evidence" />
+        <Tab label="Tools" />
+      </Tabs>
+      <Box sx={{ flexGrow: 1, overflow: 'auto' }}>
+        {activeTab === 0 ? (
+          <EvidenceFilters />
+        ) : (
+          <Box sx={{ p: 2 }}>
+            <Typography variant="h6" gutterBottom>
+              Timers
+            </Typography>
+            <Box sx={{ mb: 3 }}>
+              <Typography variant="subtitle1" gutterBottom>
+                Smudge Timer
+              </Typography>
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                Demon - 1 minute<br />
+                Spirit - 3 minutes<br />
+                All other ghosts - 1 minute 30 seconds
+              </Typography>
+            </Box>
+
+            <Box sx={{ mb: 3 }}>
+              <Typography variant="subtitle1" gutterBottom>
+                Hunt Cooldown
+              </Typography>
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                Demon - 20 seconds<br />
+                All other ghosts - 25 seconds
+              </Typography>
+            </Box>
+          </Box>
+        )}
+      </Box>
     </Box>
   )
 
