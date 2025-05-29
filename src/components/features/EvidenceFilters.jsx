@@ -173,6 +173,94 @@ const EvidenceFilters = () => {
     return 'included';
   };
 
+  const huntEvidenceList = [
+    { id: 'hunts_after_smudge_1', label: 'Hunts 60s after smudge', ghost: 'Demon' },
+    { id: 'hunts_after_smudge_3', label: 'Hunts 180s after smudge', ghost: 'Spirit' },
+    { id: 'no_salt', label: 'Cannot touch salt', ghost: 'Wraith' },
+    { id: 'throws_far', label: 'object thrown every 0.5 seconds and further than usual during hunt', ghost: 'Poltergeist' },
+    { id: 'throws_multiple', label: 'Throws multiple objects at the same time', ghost: 'Poltergeist' },
+    { id: 'disappears_photo', label: 'Disappears in photos', ghost: 'Phantom' },
+    { id: 'less_visible_hunt', label: 'Less visible during hunts', ghost: 'Phantom' },
+    { id: 'more_visible_hunt', label: 'More visible during hunts — blinks more often', ghost: 'Oni' },
+    { id: 'no_ghost_mist', label: 'Never does ghost mist event', ghost: 'Oni' },
+    { id: 'breath_breaker_off', label: 'Visible breath when breaker is off', ghost: 'Hantu' },
+    { id: 'never_turns_on_breaker', label: 'Never turns on breaker', ghost: 'Hantu' },
+    { id: 'faster_cold_rooms', label: 'Faster in colder rooms', ghost: 'Hantu' },
+    { id: 'poor_detection', label: 'wont hear/detect outside of 2.5 meters during hunt', ghost: 'Yokai' },
+    { id: 'fast_near_electronics', label: 'fast near active equipment', ghost: 'Raiju' },
+    { id: 'larger_equipment_range', label: 'Effects equipment at 15 meters instead of 10 meters during hunt', ghost: 'Raiju' },
+    { id: 'silent_footsteps', label: 'cannot hear footsteps on the same floor until flashlight is distruped', ghost: 'Myling' },
+    { id: 'alternating_speed', label: 'hunt speed alternates between slightly slower and faster', ghost: 'The Twins' },
+    { id: 'changes_model', label: 'Ghost model changes briefly mid hunt', ghost: 'Obake' },
+    { id: 'slows_on_meds', label: 'slows down when taking meds mid hunt', ghost: 'Moroi' },
+    { id: 'fast_far_slow_close', label: 'Fast far, slow close', ghost: 'Deogen' },
+    { id: 'cant_turn_lights', label: 'Cannot turn on lights', ghost: 'Mare' },
+    { id: 'turns_off_lights', label: 'Turns light off immediately after its turned on (when within 4 meters)', ghost: 'Mare' },
+    { id: 'prefers_light_events', label: 'Prefers light bursting events and turning lights off', ghost: 'Mare' },
+    { id: 'wanders_to_dark', label: 'Wanders out of rooms with light into rooms without light', ghost: 'Mare' },
+    { id: 'screams_parabolic', label: 'Screams in parabolic', ghost: 'Banshee' },
+    { id: 'hunt_speed_decreases', label: 'hunt speed decreases from spending time in the ghost room', ghost: 'Thaye' },
+    { id: 'double_slam', label: 'double touches and slams doors', ghost: 'Yurei' },
+    { id: 'interacts_main_door', label: 'Interacts with main door outside of ghost event and hunts', ghost: 'Yurei' },
+    { id: 'never_changes_rooms', label: 'never changes favorite room', ghost: 'Goryo, Banshee' },
+    { id: 'hunts_after_candles', label: 'hunts after extinguishing every third flame', ghost: 'Onryo' },
+    { id: 'no_hunt_in_room', label: "won't hunt while in favorite room", ghost: 'Shade' },
+    { id: 'speed_with_breaker', label: 'fast when breaker is on and is far away', ghost: 'Jinn' },
+    { id: 'never_turns_off_breaker', label: 'Never turns off breaker', ghost: 'Jinn' },
+    { id: 'hunts_20s', label: 'Hunts again in 20 seconds instead of 25', ghost: 'Demon' },
+    { id: 'speed_when_hiding', label: "extremely slow when player isn't detected, very fast when it detects a player", ghost: 'Revenant' }
+  ];
+
+  const isEvidenceInSearchResults = (evidence) => {
+    if (!searchQuery) return false;
+    return ghosts.some(ghost => 
+      ghost.ghost.toLowerCase().includes(searchQuery.toLowerCase().trim()) && 
+      ghost.evidence.includes(evidence)
+    );
+  };
+
+  const isSpeedInSearchResults = (speedType) => {
+    if (!searchQuery) return false;
+    return ghosts.some(ghost => {
+      if (!ghost.ghost.toLowerCase().includes(searchQuery.toLowerCase().trim())) return false;
+      
+      const minSpeed = parseFloat(ghost.min_speed);
+      const maxSpeed = parseFloat(ghost.max_speed);
+      const altSpeed = parseFloat(ghost.alt_speed);
+      const normalSpeed = 1.7;
+      
+      const speeds = [];
+      if (!isNaN(minSpeed)) speeds.push(minSpeed);
+      if (!isNaN(maxSpeed)) speeds.push(maxSpeed);
+      if (!isNaN(altSpeed)) speeds.push(altSpeed);
+      
+      if (speeds.length === 0) return false;
+      
+      switch (speedType) {
+        case 'slow':
+          return speeds.some(speed => speed < normalSpeed);
+        case 'normal':
+          return speeds.every(speed => speed === normalSpeed);
+        case 'fast':
+          return speeds.some(speed => speed > normalSpeed);
+        case 'los':
+          return ghost.has_los === true;
+      }
+      return false;
+    });
+  };
+
+  const isHuntEvidenceInSearchResults = (evidence) => {
+    if (!searchQuery) return false;
+    const huntEvidence = huntEvidenceList.find(e => e.id === evidence);
+    if (!huntEvidence) return false;
+    const ghostNames = huntEvidence.ghost.split(', ');
+    return ghosts.some(ghost => 
+      ghost.ghost.toLowerCase().includes(searchQuery.toLowerCase().trim()) && 
+      ghostNames.includes(ghost.ghost)
+    );
+  };
+
   const isGhostFilteredOut = (ghostName) => {
     return !ghosts.some(ghost => {
       if (ghost.ghost !== ghostName) return false;
@@ -222,7 +310,24 @@ const EvidenceFilters = () => {
         return true;
       });
 
-      return evidenceMatch && speedMatch;
+      // Check hunt evidence filters
+      const huntEvidenceMatch = Object.entries(selectedHuntEvidence).every(([evidence, state]) => {
+        if (state === undefined) return true;
+        const huntEvidence = huntEvidenceList.find(e => e.id === evidence);
+        if (!huntEvidence) return true;
+        const ghostNames = huntEvidence.ghost.split(', ');
+        if (state === true) {
+          // If this evidence is selected, the ghost must be in the list
+          return ghostNames.includes(ghost.ghost);
+        }
+        if (state === false) {
+          // If this evidence is excluded, the ghost must not be in the list
+          return !ghostNames.includes(ghost.ghost);
+        }
+        return true;
+      });
+
+      return evidenceMatch && speedMatch && huntEvidenceMatch;
     });
   };
 
@@ -230,81 +335,6 @@ const EvidenceFilters = () => {
     e.stopPropagation(); // Prevent the checkbox from being clicked
     audioRef.current.currentTime = 0;
     audioRef.current.play();
-  };
-
-  const huntEvidenceList = [
-    { id: 'hunts_after_smudge_1', label: 'Hunts 1 minute after smudge', ghost: 'Demon' },
-    { id: 'hunts_after_smudge_3', label: 'Hunts 3 minutes after smudge', ghost: 'Spirit' },
-    { id: 'no_salt', label: 'Doesn\'t walk through salt', ghost: 'Wraith' },
-    { id: 'throws_far', label: 'Objects thrown far and often', ghost: 'Poltergeist' },
-    { id: 'disappears_photo', label: 'Disappears when photographed', ghost: 'Phantom' },
-    { id: 'less_visible_hunt', label: 'Less visible during hunts', ghost: 'Phantom' },
-    { id: 'more_visible_hunt', label: 'More visible during hunts', ghost: 'Oni' },
-    { id: 'breath_breaker_off', label: 'Can see ghosts breath when breaker is off', ghost: 'Hantu' },
-    { id: 'poor_detection', label: 'Doesn\'t detect players easily', ghost: 'Yokai' },
-    { id: 'fast_near_electronics', label: 'Fast near electronic equipment', ghost: 'Raiju' },
-    { id: 'silent_footsteps', label: 'Footsteps silent until close', ghost: 'Myling' },
-    { id: 'alternating_speed', label: 'Alternates between slightly slower and slightly faster', ghost: 'The Twins' },
-    { id: 'changes_model', label: 'Changes model mid hunt', ghost: 'Obake' },
-    { id: 'slows_on_meds', label: 'Slows down taking sanity meds mid haunt', ghost: 'Moroi' },
-    { id: 'fast_far_slow_close', label: 'Fast from far, slow when close', ghost: 'Deogen' },
-    { id: 'cant_turn_lights', label: 'Can\'t turn lights on', ghost: 'Mare' },
-    { id: 'screams_parabolic', label: 'Screams in parabolic mic', ghost: 'Banshee' },
-    { id: 'hunt_speed_decreases', label: 'Hunts faster than normal, slows down with time', ghost: 'Thaye' },
-    { id: 'double_slam', label: 'Double slam doors', ghost: 'Yurei' },
-    { id: 'never_changes_rooms', label: 'Never changes rooms', ghost: 'Goryo' },
-    { id: 'hunts_after_candles', label: 'Hunts after blowing out 3 candles', ghost: 'Onryo' },
-    { id: 'no_hunt_in_room', label: 'Won\'t hunt while you\'re in the room', ghost: 'Shade' },
-    { id: 'speed_with_breaker', label: 'Fast w fuse box off/slow w on', ghost: 'Jinn' },
-    { id: 'speed_when_hiding', label: 'Slow when hiding, fast when it sees you', ghost: 'Revenant' }
-  ];
-
-  const isEvidenceInSearchResults = (evidence) => {
-    if (!searchQuery) return false;
-    return ghosts.some(ghost => 
-      ghost.ghost.toLowerCase().includes(searchQuery.toLowerCase()) && 
-      ghost.evidence.includes(evidence)
-    );
-  };
-
-  const isSpeedInSearchResults = (speedType) => {
-    if (!searchQuery) return false;
-    return ghosts.some(ghost => {
-      if (!ghost.ghost.toLowerCase().includes(searchQuery.toLowerCase())) return false;
-      
-      const minSpeed = parseFloat(ghost.min_speed);
-      const maxSpeed = parseFloat(ghost.max_speed);
-      const altSpeed = parseFloat(ghost.alt_speed);
-      const normalSpeed = 1.7;
-      
-      const speeds = [];
-      if (!isNaN(minSpeed)) speeds.push(minSpeed);
-      if (!isNaN(maxSpeed)) speeds.push(maxSpeed);
-      if (!isNaN(altSpeed)) speeds.push(altSpeed);
-      
-      if (speeds.length === 0) return false;
-      
-      switch (speedType) {
-        case 'slow':
-          return speeds.some(speed => speed < normalSpeed);
-        case 'normal':
-          return speeds.every(speed => speed === normalSpeed);
-        case 'fast':
-          return speeds.some(speed => speed > normalSpeed);
-        case 'los':
-          return ghost.has_los === true;
-      }
-      return false;
-    });
-  };
-
-  const isHuntEvidenceInSearchResults = (evidence) => {
-    if (!searchQuery) return false;
-    const ghostName = huntEvidenceList.find(e => e.id === evidence)?.ghost;
-    return ghosts.some(ghost => 
-      ghost.ghost.toLowerCase().includes(searchQuery.toLowerCase()) && 
-      ghost.ghost === ghostName
-    );
   };
 
   return (
@@ -352,6 +382,8 @@ const EvidenceFilters = () => {
 
                   // Clear search
                   setSearchQuery('');
+                  // Clear hunt evidence search
+                  setHuntEvidenceSearch('');
                 }}
                 startIcon={<RestartAltIcon />}
               >
@@ -538,8 +570,8 @@ const EvidenceFilters = () => {
                 .slice()
                 .sort((a, b) => {
                   // First sort by filtered status
-                  const aFiltered = isGhostFilteredOut(a.ghost);
-                  const bFiltered = isGhostFilteredOut(b.ghost);
+                  const aFiltered = a.ghost.split(', ').every(ghostName => isGhostFilteredOut(ghostName));
+                  const bFiltered = b.ghost.split(', ').every(ghostName => isGhostFilteredOut(ghostName));
                   if (aFiltered !== bFiltered) {
                     return aFiltered ? 1 : -1;
                   }
@@ -557,7 +589,7 @@ const EvidenceFilters = () => {
                   return 0;
                 })
                 .map((evidence) => {
-                  const isFiltered = isGhostFilteredOut(evidence.ghost);
+                  const isFiltered = evidence.ghost.split(', ').every(ghostName => isGhostFilteredOut(ghostName));
                   const matchesSearch = huntEvidenceSearch && 
                     evidence.label.toLowerCase().includes(huntEvidenceSearch.toLowerCase());
                   return (

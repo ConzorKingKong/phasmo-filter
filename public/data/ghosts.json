@@ -292,7 +292,7 @@
       "wiki": {
         "tells": [
           {
-            "data": "33% chance to give unique scream through Parabolic Microphone <span class=\"sound\" onClick=\"playSound('https://zero-network.net/phasmophobia/static/assets/banshee_scream.mp3')\">🔊</span>",
+            "data": "33% chance to give unique scream through Parabolic Microphone",
             "is_0_evi": true,
             "include_on_card": true
           },
@@ -824,7 +824,7 @@
             "include_on_card": true
           },
           {
-            "data": "Will <i>not</i> do \"Ghost Mist\" event",
+            "data": "Never does the \"Ghost Mist\" event",
             "is_0_evi": true,
             "include_on_card": true
           },
@@ -1226,7 +1226,7 @@
       "wiki": {
         "tells": [
           {
-            "data": "Can do 2 interactions at the same time, one within its standard range (1.5m, 3m on medium/large maps) and the other within its extended range (8m, 16m on medium/large maps) <img class='wiki-link' src='https://zero-network.net/phasmophobia/static/imgs/warn.png' height='15' style='margin-bottom: -3px; width: 15px !important;' onclick='showWiki()'>",
+            "data": "Can do 2 interactions at the same time, one within its standard range (1.5m, 3m on medium/large maps) and the other within its extended range (8m, 16m on medium/large maps)",
             "is_0_evi": true,
             "include_on_card": true
           },
@@ -1368,7 +1368,7 @@
       "wiki": {
         "tells": [
           {
-            "data": "Special 6 fingered fingerprints (<span class=\"wiki-link\" onclick='openWikiPath(\"ghost-data.obake-fingerprints\")'>Open 'Guides' tab</span>)",
+            "data": "Special 6 fingered fingerprints",
             "is_0_evi": false,
             "include_on_card": true
           },
@@ -1378,7 +1378,7 @@
             "include_on_card": true
           },
           {
-            "data": "Will change models for a single blink during hunts at least once per standard length hunt (<span class=\"wiki-link\" onclick='openWikiPath(\"ghost-data.obake-blinking\")'>See deeper explanation</span>)",
+            "data": "Will change models for a single blink during hunts at least once per standard length hunt",
             "is_0_evi": true,
             "include_on_card": true
           }
@@ -1590,7 +1590,7 @@
       "wiki": {
         "tells": [
           {
-            "data": "33% chance to give heavy breathing through spirit box when within 1m of the ghost  <span class=\"sound\" onClick=\"playSound('https://zero-network.net/phasmophobia/static/assets/deogen_breathing.mp3')\">🔊</span>",
+            "data": "33% chance to give heavy breathing through spirit box when within 1m of the ghost",
             "is_0_evi": false,
             "include_on_card": true
           },

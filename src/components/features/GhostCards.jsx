@@ -44,30 +44,41 @@ const GhostCards = () => {
   };
 
   const huntEvidenceMap = {
-    'hunts_after_smudge_1': 'Demon',
-    'hunts_after_smudge_3': 'Spirit',
-    'no_salt': 'Wraith',
-    'throws_far': 'Poltergeist',
-    'disappears_photo': 'Phantom',
-    'less_visible_hunt': 'Phantom',
-    'more_visible_hunt': 'Oni',
-    'breath_breaker_off': 'Hantu',
-    'poor_detection': 'Yokai',
-    'fast_near_electronics': 'Raiju',
-    'silent_footsteps': 'Myling',
-    'alternating_speed': 'The Twins',
-    'changes_model': 'Obake',
-    'slows_on_meds': 'Moroi',
-    'fast_far_slow_close': 'Deogen',
-    'cant_turn_lights': 'Mare',
-    'screams_parabolic': 'Banshee',
-    'hunt_speed_decreases': 'Thaye',
-    'double_slam': 'Yurei',
-    'never_changes_rooms': 'Goryo',
-    'hunts_after_candles': 'Onryo',
-    'no_hunt_in_room': 'Shade',
-    'speed_with_breaker': 'Jinn',
-    'speed_when_hiding': 'Revenant'
+    'hunts_after_smudge_1': ['Demon'],
+    'hunts_after_smudge_3': ['Spirit'],
+    'no_salt': ['Wraith'],
+    'throws_far': ['Poltergeist'],
+    'throws_multiple': ['Poltergeist'],
+    'disappears_photo': ['Phantom'],
+    'less_visible_hunt': ['Phantom'],
+    'more_visible_hunt': ['Oni'],
+    'no_ghost_mist': ['Oni'],
+    'breath_breaker_off': ['Hantu'],
+    'never_turns_on_breaker': ['Hantu'],
+    'faster_cold_rooms': ['Hantu'],
+    'poor_detection': ['Yokai'],
+    'fast_near_electronics': ['Raiju'],
+    'larger_equipment_range': ['Raiju'],
+    'silent_footsteps': ['Myling'],
+    'alternating_speed': ['The Twins'],
+    'changes_model': ['Obake'],
+    'slows_on_meds': ['Moroi'],
+    'fast_far_slow_close': ['Deogen'],
+    'cant_turn_lights': ['Mare'],
+    'turns_off_lights': ['Mare'],
+    'prefers_light_events': ['Mare'],
+    'wanders_to_dark': ['Mare'],
+    'screams_parabolic': ['Banshee'],
+    'hunt_speed_decreases': ['Thaye'],
+    'double_slam': ['Yurei'],
+    'interacts_main_door': ['Yurei'],
+    'never_changes_rooms': ['Goryo', 'Banshee'],
+    'hunts_after_candles': ['Onryo'],
+    'no_hunt_in_room': ['Shade'],
+    'speed_with_breaker': ['Jinn'],
+    'never_turns_off_breaker': ['Jinn'],
+    'hunts_20s': ['Demon'],
+    'speed_when_hiding': ['Revenant']
   };
 
   const checkFilters = (ghost) => {
@@ -119,9 +130,10 @@ const GhostCards = () => {
     // Check hunt evidence filters
     const huntEvidenceMatch = Object.entries(selectedHuntEvidence).every(([evidence, state]) => {
       if (state === undefined) return true;
-      const ghostName = huntEvidenceMap[evidence];
-      if (state === true) return ghost.ghost === ghostName;
-      if (state === false) return ghost.ghost !== ghostName;
+      const ghostNames = huntEvidenceMap[evidence];
+      if (!ghostNames) return true;
+      if (state === true) return ghostNames.includes(ghost.ghost);
+      if (state === false) return !ghostNames.includes(ghost.ghost);
       return true;
     });
 
