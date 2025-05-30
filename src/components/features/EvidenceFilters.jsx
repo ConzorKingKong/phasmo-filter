@@ -8,6 +8,7 @@ import StopIcon from '@mui/icons-material/Stop';
 import CloseIcon from '@mui/icons-material/Close';
 import RestartAltIcon from '@mui/icons-material/RestartAlt';
 import FilterAltIcon from '@mui/icons-material/FilterAlt';
+import CancelIcon from '@mui/icons-material/Cancel';
 import { useApp } from '../../context/AppContext';
 
 const EvidenceFilters = () => {
@@ -109,10 +110,18 @@ const EvidenceFilters = () => {
   const handleEvidenceClick = (evidence) => {
     setSelectedEvidence(prev => {
       const currentState = prev[evidence];
-      // Cycle through states: undefined (neutral) -> true (included) -> false (excluded) -> undefined (neutral)
-      const newState = currentState === undefined ? true : 
-                      currentState === true ? false : 
-                      undefined;
+      // Toggle between undefined (neutral) and true (included)
+      const newState = currentState === undefined ? true : undefined;
+      return { ...prev, [evidence]: newState };
+    });
+  };
+
+  const handleEvidenceExclude = (evidence, e) => {
+    e.stopPropagation(); // Prevent the checkbox click
+    setSelectedEvidence(prev => {
+      const currentState = prev[evidence];
+      // Toggle between undefined (neutral) and false (excluded)
+      const newState = currentState === undefined ? false : undefined;
       return { ...prev, [evidence]: newState };
     });
   };
@@ -120,10 +129,18 @@ const EvidenceFilters = () => {
   const handleSpeedClick = (speedType) => {
     setSelectedSpeed(prev => {
       const currentState = prev[speedType];
-      // Cycle through states: undefined (neutral) -> true (included) -> false (excluded) -> undefined (neutral)
-      const newState = currentState === undefined ? true : 
-                      currentState === true ? false : 
-                      undefined;
+      // Toggle between undefined (neutral) and true (included)
+      const newState = currentState === undefined ? true : undefined;
+      return { ...prev, [speedType]: newState };
+    });
+  };
+
+  const handleSpeedExclude = (speedType, e) => {
+    e.stopPropagation(); // Prevent the checkbox click
+    setSelectedSpeed(prev => {
+      const currentState = prev[speedType];
+      // Toggle between undefined (neutral) and false (excluded)
+      const newState = currentState === undefined ? false : undefined;
       return { ...prev, [speedType]: newState };
     });
   };
@@ -131,10 +148,18 @@ const EvidenceFilters = () => {
   const handleHuntEvidenceClick = (evidence) => {
     setSelectedHuntEvidence(prev => {
       const currentState = prev[evidence];
-      // Cycle through states: undefined (neutral) -> true (included) -> false (excluded) -> undefined (neutral)
-      const newState = currentState === undefined ? true : 
-                      currentState === true ? false : 
-                      undefined;
+      // Toggle between undefined (neutral) and true (included)
+      const newState = currentState === undefined ? true : undefined;
+      return { ...prev, [evidence]: newState };
+    });
+  };
+
+  const handleHuntEvidenceExclude = (evidence, e) => {
+    e.stopPropagation(); // Prevent the checkbox click
+    setSelectedHuntEvidence(prev => {
+      const currentState = prev[evidence];
+      // Toggle between undefined (neutral) and false (excluded)
+      const newState = currentState === undefined ? false : undefined;
       return { ...prev, [evidence]: newState };
     });
   };
@@ -421,59 +446,136 @@ const EvidenceFilters = () => {
               Evidence
       </Typography>
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, mb: 2 }}>
-        {[
+              {[
                 'EMF 5',
-          'Spirit Box',
-          'Ultraviolet',
+                'Spirit Box',
+                'Ultraviolet',
                 'Ghost Orbs',
                 'Writing',
                 'Freezing',
                 'DOTs'
-        ].map((evidence) => (
-          <FormControlLabel
-            key={evidence}
-            control={
-              <Checkbox
-                checked={selectedEvidence[evidence] === true}
-                indeterminate={selectedEvidence[evidence] === false}
-                onChange={() => handleEvidenceClick(evidence)}
-                sx={{
-                  '&.MuiCheckbox-root': {
-                    color: 'text.secondary',
-                  },
-                  '&.Mui-checked': {
-                    color: 'success.main',
-                  },
-                  '&.MuiCheckbox-indeterminate': {
-                    color: 'error.main',
+              ]
+                .slice()
+                .sort((a, b) => {
+                  // First sort by filtered status
+                  const aFiltered = !ghosts.some(ghost => 
+                    ghost.evidence.includes(a) && 
+                    !Object.entries(selectedEvidence).some(([evidence, state]) => 
+                      state === false && ghost.evidence.includes(evidence)
+                    )
+                  );
+                  const bFiltered = !ghosts.some(ghost => 
+                    ghost.evidence.includes(b) && 
+                    !Object.entries(selectedEvidence).some(([evidence, state]) => 
+                      state === false && ghost.evidence.includes(evidence)
+                    )
+                  );
+                  if (aFiltered !== bFiltered) {
+                    return aFiltered ? 1 : -1;
                   }
-                }}
-              />
-            }
-                  label={
-                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                      {getEvidenceLabel(evidence)}
-                      {isEvidenceInSearchResults(evidence) && (
-                        <FilterAltIcon 
-                          sx={{ 
-                            ml: 1, 
-                            fontSize: '1rem',
-                            color: 'primary.main',
-                            opacity: 0.7
-                          }} 
-                        />
-                      )}
+
+                  // Then sort by evidence state (neutral first)
+                  const aState = selectedEvidence[a];
+                  const bState = selectedEvidence[b];
+                  if (aState !== bState) {
+                    // If either is undefined (neutral), it goes first
+                    if (aState === undefined) return -1;
+                    if (bState === undefined) return 1;
+                    // Otherwise maintain relative order
+                    return 0;
+                  }
+
+                  // Then sort by search match
+                  const aMatchesSearch = searchQuery && 
+                    ghosts.some(ghost => 
+                      ghost.ghost.toLowerCase().includes(searchQuery.toLowerCase().trim()) && 
+                      ghost.evidence.includes(a)
+                    );
+                  const bMatchesSearch = searchQuery && 
+                    ghosts.some(ghost => 
+                      ghost.ghost.toLowerCase().includes(searchQuery.toLowerCase().trim()) && 
+                      ghost.evidence.includes(b)
+                    );
+                  if (aMatchesSearch !== bMatchesSearch) {
+                    return aMatchesSearch ? -1 : 1;
+                  }
+
+                  // Finally sort by original order
+                  return 0;
+                })
+                .map((evidence) => {
+                  const isFiltered = !ghosts.some(ghost => 
+                    ghost.evidence.includes(evidence) && 
+                    !Object.entries(selectedEvidence).some(([evidence, state]) => 
+                      state === false && ghost.evidence.includes(evidence)
+                    )
+                  );
+                  const isExcluded = selectedEvidence[evidence] === false;
+                  const isIncluded = selectedEvidence[evidence] === true;
+                  return (
+                    <Box
+                      key={evidence}
+                      sx={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 1,
+                        p: 0.5,
+                        borderRadius: 1,
+                        bgcolor: isExcluded ? 'error.dark' : isIncluded ? 'success.dark' : 'transparent',
+                        '&:hover': {
+                          bgcolor: isExcluded ? 'error.dark' : isIncluded ? 'success.dark' : 'action.hover',
+                        },
+                        cursor: 'pointer',
+                        opacity: isFiltered ? 0.5 : 1,
+                      }}
+                      onClick={() => handleEvidenceClick(evidence)}
+                    >
+                      <Checkbox
+                        checked={isIncluded}
+                        sx={{
+                          color: isFiltered ? 'text.disabled' : 'text.secondary',
+                          '&.Mui-checked': {
+                            color: isFiltered ? 'text.disabled' : 'success.main',
+                          },
+                        }}
+                      />
+                      <Box sx={{ 
+                        flexGrow: 1,
+                        display: 'flex',
+                        alignItems: 'center',
+                        color: isFiltered ? 'text.disabled' :
+                               isExcluded ? 'error.main' :
+                               isIncluded ? 'success.main' :
+                               'text.primary'
+                      }}>
+                        {getEvidenceLabel(evidence)}
+                        {isEvidenceInSearchResults(evidence) && (
+                          <FilterAltIcon 
+                            sx={{ 
+                              ml: 1, 
+                              fontSize: '1rem',
+                              color: 'primary.main',
+                              opacity: 0.7
+                            }} 
+                          />
+                        )}
+                      </Box>
+                      <IconButton
+                        size="small"
+                        onClick={(e) => handleEvidenceExclude(evidence, e)}
+                        sx={{
+                          color: isExcluded ? 'error.main' : 'text.secondary',
+                          '&:hover': {
+                            color: 'error.main',
+                          },
+                          opacity: isFiltered ? 0.5 : 1,
+                        }}
+                      >
+                        <CancelIcon fontSize="small" />
+                      </IconButton>
                     </Box>
-                  }
-            sx={{
-              '& .MuiFormControlLabel-label': {
-                color: getEvidenceState(evidence) === 'excluded' ? 'error.main' :
-                       getEvidenceState(evidence) === 'included' ? 'success.main' :
-                       'text.primary'
-              }
-            }}
-          />
-        ))}
+                  );
+                })}
             </Box>
 
             <Divider sx={{ my: 2 }} />
@@ -487,51 +589,183 @@ const EvidenceFilters = () => {
                 { id: 'normal', label: 'Normal (1.7 m/s)' },
                 { id: 'fast', label: 'Fast (> 1.7 m/s)' },
                 { id: 'los', label: 'LOS Speed Up' }
-              ].map((speed) => (
-                <FormControlLabel
-                  key={speed.id}
-                  control={
-                    <Checkbox
-                      checked={selectedSpeed[speed.id] === true}
-                      indeterminate={selectedSpeed[speed.id] === false}
-                      onChange={() => handleSpeedClick(speed.id)}
-                      sx={{
-                        '&.MuiCheckbox-root': {
-                          color: 'text.secondary',
-                        },
-                        '&.Mui-checked': {
-                          color: 'success.main',
-                        },
-                        '&.MuiCheckbox-indeterminate': {
-                          color: 'error.main',
-                        }
-                      }}
-                    />
-                  }
-                  label={
-                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                      {speed.label}
-                      {isSpeedInSearchResults(speed.id) && (
-                        <FilterAltIcon 
-                          sx={{ 
-                            ml: 1, 
-                            fontSize: '1rem',
-                            color: 'primary.main',
-                            opacity: 0.7
-                          }} 
-                        />
-                      )}
-                    </Box>
-                  }
-                  sx={{
-                    '& .MuiFormControlLabel-label': {
-                      color: getSpeedState(speed.id) === 'excluded' ? 'error.main' :
-                             getSpeedState(speed.id) === 'included' ? 'success.main' :
-                             'text.primary'
+              ]
+                .slice()
+                .sort((a, b) => {
+                  // First sort by filtered status
+                  const aFiltered = !ghosts.some(ghost => {
+                    if (!ghost.ghost.toLowerCase().includes(searchQuery.toLowerCase().trim())) return false;
+                    
+                    const minSpeed = parseFloat(ghost.min_speed);
+                    const maxSpeed = parseFloat(ghost.max_speed);
+                    const altSpeed = parseFloat(ghost.alt_speed);
+                    const normalSpeed = 1.7;
+                    
+                    const speeds = [];
+                    if (!isNaN(minSpeed)) speeds.push(minSpeed);
+                    if (!isNaN(maxSpeed)) speeds.push(maxSpeed);
+                    if (!isNaN(altSpeed)) speeds.push(altSpeed);
+                    
+                    if (speeds.length === 0) return false;
+                    
+                    switch (a.id) {
+                      case 'slow':
+                        return speeds.some(speed => speed < normalSpeed);
+                      case 'normal':
+                        return speeds.every(speed => speed === normalSpeed);
+                      case 'fast':
+                        return speeds.some(speed => speed > normalSpeed);
+                      case 'los':
+                        return ghost.has_los === true;
                     }
-                  }}
-                />
-              ))}
+                    return false;
+                  });
+                  const bFiltered = !ghosts.some(ghost => {
+                    if (!ghost.ghost.toLowerCase().includes(searchQuery.toLowerCase().trim())) return false;
+                    
+                    const minSpeed = parseFloat(ghost.min_speed);
+                    const maxSpeed = parseFloat(ghost.max_speed);
+                    const altSpeed = parseFloat(ghost.alt_speed);
+                    const normalSpeed = 1.7;
+                    
+                    const speeds = [];
+                    if (!isNaN(minSpeed)) speeds.push(minSpeed);
+                    if (!isNaN(maxSpeed)) speeds.push(maxSpeed);
+                    if (!isNaN(altSpeed)) speeds.push(altSpeed);
+                    
+                    if (speeds.length === 0) return false;
+                    
+                    switch (b.id) {
+                      case 'slow':
+                        return speeds.some(speed => speed < normalSpeed);
+                      case 'normal':
+                        return speeds.every(speed => speed === normalSpeed);
+                      case 'fast':
+                        return speeds.some(speed => speed > normalSpeed);
+                      case 'los':
+                        return ghost.has_los === true;
+                    }
+                    return false;
+                  });
+                  if (aFiltered !== bFiltered) {
+                    return aFiltered ? 1 : -1;
+                  }
+
+                  // Then sort by speed state (neutral first)
+                  const aState = selectedSpeed[a.id];
+                  const bState = selectedSpeed[b.id];
+                  if (aState !== bState) {
+                    // If either is undefined (neutral), it goes first
+                    if (aState === undefined) return -1;
+                    if (bState === undefined) return 1;
+                    // Otherwise maintain relative order
+                    return 0;
+                  }
+
+                  // Then sort by search match
+                  const aMatchesSearch = isSpeedInSearchResults(a.id);
+                  const bMatchesSearch = isSpeedInSearchResults(b.id);
+                  if (aMatchesSearch !== bMatchesSearch) {
+                    return aMatchesSearch ? -1 : 1;
+                  }
+
+                  // Finally sort by original order
+                  return 0;
+                })
+                .map((speed) => {
+                  const isFiltered = !ghosts.some(ghost => {
+                    if (!ghost.ghost.toLowerCase().includes(searchQuery.toLowerCase().trim())) return false;
+                    
+                    const minSpeed = parseFloat(ghost.min_speed);
+                    const maxSpeed = parseFloat(ghost.max_speed);
+                    const altSpeed = parseFloat(ghost.alt_speed);
+                    const normalSpeed = 1.7;
+                    
+                    const speeds = [];
+                    if (!isNaN(minSpeed)) speeds.push(minSpeed);
+                    if (!isNaN(maxSpeed)) speeds.push(maxSpeed);
+                    if (!isNaN(altSpeed)) speeds.push(altSpeed);
+                    
+                    if (speeds.length === 0) return false;
+                    
+                    switch (speed.id) {
+                      case 'slow':
+                        return speeds.some(speed => speed < normalSpeed);
+                      case 'normal':
+                        return speeds.every(speed => speed === normalSpeed);
+                      case 'fast':
+                        return speeds.some(speed => speed > normalSpeed);
+                      case 'los':
+                        return ghost.has_los === true;
+                    }
+                    return false;
+                  });
+                  const isExcluded = selectedSpeed[speed.id] === false;
+                  const isIncluded = selectedSpeed[speed.id] === true;
+                  return (
+                    <Box
+                      key={speed.id}
+                      sx={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 1,
+                        p: 0.5,
+                        borderRadius: 1,
+                        bgcolor: isExcluded ? 'error.dark' : isIncluded ? 'success.dark' : 'transparent',
+                        '&:hover': {
+                          bgcolor: isExcluded ? 'error.dark' : isIncluded ? 'success.dark' : 'action.hover',
+                        },
+                        cursor: 'pointer',
+                        opacity: isFiltered ? 0.5 : 1,
+                      }}
+                      onClick={() => handleSpeedClick(speed.id)}
+                    >
+                      <Checkbox
+                        checked={isIncluded}
+                        sx={{
+                          color: isFiltered ? 'text.disabled' : 'text.secondary',
+                          '&.Mui-checked': {
+                            color: isFiltered ? 'text.disabled' : 'success.main',
+                          },
+                        }}
+                      />
+                      <Box sx={{ 
+                        flexGrow: 1,
+                        display: 'flex',
+                        alignItems: 'center',
+                        color: isFiltered ? 'text.disabled' :
+                               isExcluded ? 'error.main' :
+                               isIncluded ? 'success.main' :
+                               'text.primary'
+                      }}>
+                        {speed.label}
+                        {isSpeedInSearchResults(speed.id) && (
+                          <FilterAltIcon 
+                            sx={{ 
+                              ml: 1, 
+                              fontSize: '1rem',
+                              color: 'primary.main',
+                              opacity: 0.7
+                            }} 
+                          />
+                        )}
+                      </Box>
+                      <IconButton
+                        size="small"
+                        onClick={(e) => handleSpeedExclude(speed.id, e)}
+                        sx={{
+                          color: isExcluded ? 'error.main' : 'text.secondary',
+                          '&:hover': {
+                            color: 'error.main',
+                          },
+                          opacity: isFiltered ? 0.5 : 1,
+                        }}
+                      >
+                        <CancelIcon fontSize="small" />
+                      </IconButton>
+                    </Box>
+                  );
+                })}
             </Box>
 
             <Divider sx={{ my: 2 }} />
@@ -592,76 +826,95 @@ const EvidenceFilters = () => {
                   const isFiltered = evidence.ghost.split(', ').every(ghostName => isGhostFilteredOut(ghostName));
                   const matchesSearch = huntEvidenceSearch && 
                     evidence.label.toLowerCase().includes(huntEvidenceSearch.toLowerCase());
+                  const isExcluded = selectedHuntEvidence[evidence.id] === false;
+                  const isIncluded = selectedHuntEvidence[evidence.id] === true;
                   return (
-                    <FormControlLabel
+                    <Box
                       key={evidence.id}
-                      control={
-                        <Checkbox
-                          checked={selectedHuntEvidence[evidence.id] === true}
-                          indeterminate={selectedHuntEvidence[evidence.id] === false}
-                          onChange={() => handleHuntEvidenceClick(evidence.id)}
-                          sx={{
-                            '&.MuiCheckbox-root': {
-                              color: isFiltered ? 'text.disabled' : 'text.secondary',
-                            },
-                            '&.Mui-checked': {
-                              color: isFiltered ? 'text.disabled' : 'success.main',
-                            },
-                            '&.MuiCheckbox-indeterminate': {
-                              color: isFiltered ? 'text.disabled' : 'error.main',
-                            }
-                          }}
-                        />
-                      }
-                      label={
-                        <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                          {evidence.label}
-                          {isHuntEvidenceInSearchResults(evidence.id) && (
-                            <FilterAltIcon 
-                              sx={{ 
-                                ml: 1, 
-                                fontSize: '1rem',
-                                color: 'primary.main',
-                                opacity: 0.7
-                              }} 
-                            />
-                          )}
-                          {matchesSearch && (
-                            <SearchIcon 
-                              sx={{ 
-                                ml: 1, 
-                                fontSize: '1rem',
-                                color: 'primary.main',
-                                opacity: 0.7
-                              }} 
-                            />
-                          )}
-                          {evidence.id === 'screams_parabolic' && (
-                            <IconButton
-                              onClick={playBansheeScream}
-                              size="small"
-                              sx={{
-                                ml: 1,
-                                color: isFiltered ? 'text.disabled' : 'white',
-                                '&:hover': {
-                                  color: isFiltered ? 'text.disabled' : 'primary.main'
-                                }
-                              }}
-                            >
-                              <VolumeUpIcon fontSize="small" />
-                            </IconButton>
-                          )}
-                        </Box>
-                      }
                       sx={{
-                        '& .MuiFormControlLabel-label': {
-                          color: isFiltered ? 'text.disabled' :
-                                 getHuntEvidenceState(evidence.id) === 'excluded' ? 'error.main' :
-                                 getHuntEvidenceState(evidence.id) === 'included' ? 'success.main' :
-                                 'text.primary'
-                        }
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 1,
+                        p: 0.5,
+                        borderRadius: 1,
+                        bgcolor: isExcluded ? 'error.dark' : isIncluded ? 'success.dark' : 'transparent',
+                        '&:hover': {
+                          bgcolor: isExcluded ? 'error.dark' : isIncluded ? 'success.dark' : 'action.hover',
+                        },
+                        cursor: 'pointer',
+                        opacity: isFiltered ? 0.5 : 1,
                       }}
-                    />
+                      onClick={() => handleHuntEvidenceClick(evidence.id)}
+                    >
+                      <Checkbox
+                        checked={isIncluded}
+                        sx={{
+                          color: isFiltered ? 'text.disabled' : 'text.secondary',
+                          '&.Mui-checked': {
+                            color: isFiltered ? 'text.disabled' : 'success.main',
+                          },
+                        }}
+                      />
+                      <Box sx={{ 
+                        flexGrow: 1,
+                        display: 'flex',
+                        alignItems: 'center',
+                        color: isFiltered ? 'text.disabled' :
+                               isExcluded ? 'error.main' :
+                               isIncluded ? 'success.main' :
+                               'text.primary'
+                      }}>
+                        {evidence.label}
+                        {isHuntEvidenceInSearchResults(evidence.id) && (
+                          <FilterAltIcon 
+                            sx={{ 
+                              ml: 1, 
+                              fontSize: '1rem',
+                              color: 'primary.main',
+                              opacity: 0.7
+                            }} 
+                          />
+                        )}
+                        {matchesSearch && (
+                          <SearchIcon 
+                            sx={{ 
+                              ml: 1, 
+                              fontSize: '1rem',
+                              color: 'primary.main',
+                              opacity: 0.7
+                            }} 
+                          />
+                        )}
+                        {evidence.id === 'screams_parabolic' && (
+                          <IconButton
+                            onClick={playBansheeScream}
+                            size="small"
+                            sx={{
+                              ml: 1,
+                              color: isFiltered ? 'text.disabled' : 'white',
+                              '&:hover': {
+                                color: isFiltered ? 'text.disabled' : 'primary.main'
+                              }
+                            }}
+                          >
+                            <VolumeUpIcon fontSize="small" />
+                          </IconButton>
+                        )}
+                      </Box>
+                      <IconButton
+                        size="small"
+                        onClick={(e) => handleHuntEvidenceExclude(evidence.id, e)}
+                        sx={{
+                          color: isExcluded ? 'error.main' : 'text.secondary',
+                          '&:hover': {
+                            color: 'error.main',
+                          },
+                          opacity: isFiltered ? 0.5 : 1,
+                        }}
+                      >
+                        <CancelIcon fontSize="small" />
+                      </IconButton>
+                    </Box>
                   );
                 })}
             </Box>
