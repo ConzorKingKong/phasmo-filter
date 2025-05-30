@@ -199,41 +199,42 @@ const EvidenceFilters = () => {
   };
 
   const huntEvidenceList = [
-    { id: 'hunts_after_smudge_1', label: 'Hunts 60s after smudge', ghost: 'Demon' },
-    { id: 'hunts_after_smudge_3', label: 'Hunts 180s after smudge', ghost: 'Spirit' },
-    { id: 'no_salt', label: 'Cannot touch salt', ghost: 'Wraith' },
+    { id: 'hunts_after_smudge_1', label: 'Hunts 1 minute after smudge (use timer under tools tab after smudging)', ghost: 'Demon' },
+    { id: 'hunts_after_smudge_3', label: 'Hunts 3 minutes after smudge (use timer under tools tab after smudging)', ghost: 'Spirit' },
+    { id: 'no_salt', label: 'Ghost cannot touch salt', ghost: 'Wraith' },
     { id: 'throws_far', label: 'Object thrown every 0.5 seconds and further than usual during hunt', ghost: 'Poltergeist' },
     { id: 'throws_multiple', label: 'Throws multiple objects at the same time', ghost: 'Poltergeist' },
     { id: 'disappears_photo', label: 'Disappears in photos', ghost: 'Phantom' },
     { id: 'less_visible_hunt', label: 'Less visible during hunts', ghost: 'Phantom' },
     { id: 'more_visible_hunt', label: 'More visible during hunts — blinks more often', ghost: 'Oni' },
     { id: 'no_ghost_mist', label: 'Never does ghost mist event', ghost: 'Oni' },
-    { id: 'breath_breaker_off', label: 'Visible breath when breaker is off', ghost: 'Hantu' },
-    { id: 'never_turns_on_breaker', label: 'Never turns on breaker', ghost: 'Hantu' },
-    { id: 'faster_cold_rooms', label: 'Faster in colder rooms', ghost: 'Hantu' },
-    { id: 'poor_detection', label: "Won't hear/detect outside of 2.5 meters during hunt", ghost: 'Yokai' },
-    { id: 'fast_near_electronics', label: 'Fast near active equipment', ghost: 'Raiju' },
+    { id: 'breath_breaker_off', label: 'Ghost has visible breath when breaker is off during hunts', ghost: 'Hantu' },
+    { id: 'never_turns_on_breaker', label: 'Ghost never turns on breaker', ghost: 'Hantu' },
+    { id: 'faster_cold_rooms', label: "Ghost's movement speed is faster in colder rooms during hunts", ghost: 'Hantu' },
+    { id: 'poor_detection', label: "Ghost won't hear/detect you outside of 2.5 meters during hunt", ghost: 'Yokai' },
+    { id: 'fast_near_electronics', label: 'Ghost moves faster near active equipment during hunt (activate flashlight near the ghost during safe loop)', ghost: 'Raiju' },
     { id: 'larger_equipment_range', label: 'Effects equipment at 15 meters instead of 10 meters during hunt', ghost: 'Raiju' },
-    { id: 'silent_footsteps', label: "Cannot hear footsteps on the same floor until flashlight is distruped", ghost: 'Myling' },
-    { id: 'alternating_speed', label: 'Hunt speed alternates between slightly slower and faster', ghost: 'The Twins' },
-    { id: 'changes_model', label: 'Ghost model changes briefly mid hunt', ghost: 'Obake' },
-    { id: 'slows_on_meds', label: 'Slows down when taking meds mid hunt', ghost: 'Moroi' },
-    { id: 'fast_far_slow_close', label: 'Fast far, slow close', ghost: 'Deogen' },
-    { id: 'cant_turn_lights', label: 'Cannot turn on lights', ghost: 'Mare' },
-    { id: 'turns_off_lights', label: 'Turns light off immediately after its turned on (when within 4 meters)', ghost: 'Mare' },
+    { id: 'silent_footsteps', label: "Cannot hear ghost's footsteps when on the same storey until within 12m range during hunts (test with flashlight standard 10m disruption)", ghost: 'Myling' },
+    { id: 'alternating_speed', label: 'Hunt speed alternates between slightly slower and faster than normal on each new hunt', ghost: 'The Twins' },
+    { id: 'changes_model', label: 'Ghost model changes briefly during hunt', ghost: 'Obake' },
+    { id: 'slows_on_meds', label: 'Ghost hunt speed is tied to sanity (slows when taking meds mid hunt)', ghost: 'Moroi' },
+    { id: 'fast_far_slow_close', label: "Ghost has fastest hunt movement speed in game when far, slowest movement speed in game when close", ghost: 'Deogen' },
+    { id: 'cant_turn_lights', label: 'Ghost cannot turn on lights', ghost: 'Mare' },
+    { id: 'turns_off_lights', label: "Ghost turns lights off immediately after they're turned on (when ghost is within 4 meters)", ghost: 'Mare' },
     { id: 'prefers_light_events', label: 'Prefers light bursting events and turning lights off', ghost: 'Mare' },
-    { id: 'wanders_to_dark', label: 'Wanders out of rooms with light into rooms without light', ghost: 'Mare' },
-    { id: 'screams_parabolic', label: 'Screams in parabolic', ghost: 'Banshee' },
-    { id: 'hunt_speed_decreases', label: 'Hunt speed decreases from spending time in the ghost room', ghost: 'Thaye' },
-    { id: 'double_slam', label: 'Double touches and slams doors', ghost: 'Yurei' },
-    { id: 'interacts_main_door', label: 'Interacts with main door outside of ghost event and hunts', ghost: 'Yurei' },
-    { id: 'never_changes_rooms', label: 'Never changes favorite room', ghost: 'Goryo, Banshee' },
-    { id: 'hunts_after_candles', label: 'Hunts after extinguishing every third flame', ghost: 'Onryo' },
-    { id: 'no_hunt_in_room', label: "Won't hunt while in favorite room", ghost: 'Shade' },
-    { id: 'speed_with_breaker', label: 'Fast when breaker is on and is far away', ghost: 'Jinn' },
-    { id: 'never_turns_off_breaker', label: 'Never turns off breaker', ghost: 'Jinn' },
-    { id: 'hunts_20s', label: 'Hunts again in 20 seconds instead of 25', ghost: 'Demon' },
-    { id: 'speed_when_hiding', label: "Extremely slow when player isn't detected, very fast when it detects a player", ghost: 'Revenant' }
+    { id: 'wanders_to_dark', label: "Wanders out of rooms with light into rooms without light (only lights effected by breaker count, wandering happens outside of hunting)", ghost: 'Mare' },
+    { id: 'screams_parabolic', label: 'Unique scream heard on parabolic mic', ghost: 'Banshee' },
+    { id: 'hunt_speed_decreases', label: "Ghost has gradually slower hunt speeds as players spend more time in the ghost's favorite room", ghost: 'Thaye' },
+    { id: 'double_slam', label: 'Ghost double touches doors and slams doors', ghost: 'Yurei' },
+    { id: 'interacts_main_door', label: 'Ghost interacts with the main door outside of ghost event and hunts', ghost: 'Yurei' },
+    { id: 'never_changes_rooms', label: 'Ghost never changes favorite room', ghost: 'Goryo, Banshee' },
+    { id: 'hunts_after_candles', label: 'Ghost hunts after every third flame extinguished (single candle, candelabra, lit igniter all = 1 flame)', ghost: 'Onryo' },
+    { id: 'cant_light_fire', label: 'Ghost cannot light any fire sources (unless forced by a voodoo doll)', ghost: 'Onryo' },
+    { id: 'no_hunt_in_room', label: "Ghost won't hunt while players are in it's favorite room", ghost: 'Shade' },
+    { id: 'speed_with_breaker', label: "Ghost's hunt speed is fast when breaker is on and player is far away", ghost: 'Jinn' },
+    { id: 'never_turns_off_breaker', label: 'Ghost never turns off breaker', ghost: 'Jinn' },
+    { id: 'hunts_20s', label: 'Hunts again in 20 seconds instead of 25 (easiest to test at 0 sanity)', ghost: 'Demon' },
+    { id: 'speed_when_hiding', label: "Ghost's hunt speed is extremely slow when player isn't detected, and very fast when it detects a player", ghost: 'Revenant' }
   ];
 
   const isEvidenceInSearchResults = (evidence) => {
@@ -375,7 +376,7 @@ const EvidenceFilters = () => {
 
       <Box sx={{ flexGrow: 1, overflow: 'auto' }}>
         {activeTab === 0 ? (
-    <Box sx={{ p: 2 }}>
+          <Box sx={{ p: 2 }}>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
               <Typography variant="h6" gutterBottom>
                 Evidence Filters
@@ -442,9 +443,9 @@ const EvidenceFilters = () => {
               }}
             />
 
-      <Typography variant="h6" gutterBottom>
+            <Typography variant="h6" gutterBottom>
               Evidence
-      </Typography>
+            </Typography>
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, mb: 2 }}>
               {[
                 'EMF 5',
@@ -592,84 +593,14 @@ const EvidenceFilters = () => {
               ]
                 .slice()
                 .sort((a, b) => {
-                  // First sort by filtered status
-                  const aFiltered = !ghosts.some(ghost => {
-                    if (!ghost.ghost.toLowerCase().includes(searchQuery.toLowerCase().trim())) return false;
-                    
-                    const minSpeed = parseFloat(ghost.min_speed);
-                    const maxSpeed = parseFloat(ghost.max_speed);
-                    const altSpeed = parseFloat(ghost.alt_speed);
-                    const normalSpeed = 1.7;
-                    
-                    const speeds = [];
-                    if (!isNaN(minSpeed)) speeds.push(minSpeed);
-                    if (!isNaN(maxSpeed)) speeds.push(maxSpeed);
-                    if (!isNaN(altSpeed)) speeds.push(altSpeed);
-                    
-                    if (speeds.length === 0) return false;
-                    
-                    switch (a.id) {
-                      case 'slow':
-                        return speeds.some(speed => speed < normalSpeed);
-                      case 'normal':
-                        return speeds.every(speed => speed === normalSpeed);
-                      case 'fast':
-                        return speeds.some(speed => speed > normalSpeed);
-                      case 'los':
-                        return ghost.has_los === true;
-                    }
-                    return false;
-                  });
-                  const bFiltered = !ghosts.some(ghost => {
-                    if (!ghost.ghost.toLowerCase().includes(searchQuery.toLowerCase().trim())) return false;
-                    
-                    const minSpeed = parseFloat(ghost.min_speed);
-                    const maxSpeed = parseFloat(ghost.max_speed);
-                    const altSpeed = parseFloat(ghost.alt_speed);
-                    const normalSpeed = 1.7;
-                    
-                    const speeds = [];
-                    if (!isNaN(minSpeed)) speeds.push(minSpeed);
-                    if (!isNaN(maxSpeed)) speeds.push(maxSpeed);
-                    if (!isNaN(altSpeed)) speeds.push(altSpeed);
-                    
-                    if (speeds.length === 0) return false;
-                    
-                    switch (b.id) {
-                      case 'slow':
-                        return speeds.some(speed => speed < normalSpeed);
-                      case 'normal':
-                        return speeds.every(speed => speed === normalSpeed);
-                      case 'fast':
-                        return speeds.some(speed => speed > normalSpeed);
-                      case 'los':
-                        return ghost.has_los === true;
-                    }
-                    return false;
-                  });
-                  if (aFiltered !== bFiltered) {
-                    return aFiltered ? 1 : -1;
-                  }
-
-                  // Then sort by speed state (neutral first)
-                  const aState = selectedSpeed[a.id];
-                  const bState = selectedSpeed[b.id];
-                  if (aState !== bState) {
-                    // If either is undefined (neutral), it goes first
-                    if (aState === undefined) return -1;
-                    if (bState === undefined) return 1;
-                    // Otherwise maintain relative order
-                    return 0;
-                  }
-
-                  // Then sort by search match
+                  // Only sort by search match
                   const aMatchesSearch = isSpeedInSearchResults(a.id);
                   const bMatchesSearch = isSpeedInSearchResults(b.id);
                   if (aMatchesSearch !== bMatchesSearch) {
                     return aMatchesSearch ? -1 : 1;
                   }
 
-                  // Finally sort by original order
+                  // Maintain original order
                   return 0;
                 })
                 .map((speed) => {
@@ -771,12 +702,12 @@ const EvidenceFilters = () => {
             <Divider sx={{ my: 2 }} />
 
             <Typography variant="h6" gutterBottom>
-              Hunt Evidence
+              Unique Evidence
             </Typography>
             <TextField
               fullWidth
               variant="outlined"
-              placeholder="Search hunt evidence..."
+              placeholder="Search unique evidence..."
               value={huntEvidenceSearch}
               onChange={(e) => setHuntEvidenceSearch(e.target.value)}
               sx={{ mb: 2 }}
@@ -817,6 +748,19 @@ const EvidenceFilters = () => {
                     b.label.toLowerCase().includes(huntEvidenceSearch.toLowerCase());
                   if (aMatchesSearch !== bMatchesSearch) {
                     return aMatchesSearch ? -1 : 1;
+                  }
+
+                  // Then sort by ghost match if there's a search query
+                  if (searchQuery) {
+                    const aGhostMatches = a.ghost.split(', ').some(ghostName => 
+                      ghostName.toLowerCase().includes(searchQuery.toLowerCase().trim())
+                    );
+                    const bGhostMatches = b.ghost.split(', ').some(ghostName => 
+                      ghostName.toLowerCase().includes(searchQuery.toLowerCase().trim())
+                    );
+                    if (aGhostMatches !== bGhostMatches) {
+                      return aGhostMatches ? -1 : 1;
+                    }
                   }
 
                   // Finally sort by original order

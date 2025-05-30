@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { ThemeProvider, createTheme, useMediaQuery, useTheme, IconButton, Drawer, AppBar, Toolbar, Typography, Tabs, Tab } from '@mui/material'
+import { ThemeProvider, createTheme, useMediaQuery, useTheme, IconButton, Drawer, AppBar, Toolbar, Typography } from '@mui/material'
 import { BrowserRouter as Router } from 'react-router-dom'
 import CssBaseline from '@mui/material/CssBaseline'
 import Box from '@mui/material/Box'
@@ -22,60 +22,92 @@ function App() {
         main: '#dc004e',
       },
     },
+    typography: {
+      h6: {
+        fontSize: '1.5rem',
+        fontWeight: 500,
+        '@media (max-width:600px)': {
+          fontSize: '1.25rem',
+        },
+      },
+      subtitle1: {
+        fontSize: '1.3rem',
+        fontWeight: 500,
+        '@media (max-width:600px)': {
+          fontSize: '1.1rem',
+        },
+      },
+      subtitle2: {
+        fontSize: '1.2rem',
+        fontWeight: 500,
+        '@media (max-width:600px)': {
+          fontSize: '1rem',
+        },
+      },
+      body1: {
+        fontSize: '1.2rem',
+        '@media (max-width:600px)': {
+          fontSize: '1rem',
+        },
+      },
+      body2: {
+        fontSize: '1.1rem',
+        '@media (max-width:600px)': {
+          fontSize: '0.9rem',
+        },
+      },
+    },
+    components: {
+      MuiToolbar: {
+        styleOverrides: {
+          root: {
+            minHeight: '48px !important',
+          },
+        },
+      },
+      MuiCard: {
+        styleOverrides: {
+          root: {
+            '& .MuiTypography-h6': {
+              fontSize: '1.5rem',
+              '@media (max-width:600px)': {
+                fontSize: '1.25rem',
+              },
+            },
+            '& .MuiTypography-subtitle2': {
+              fontSize: '1.2rem',
+              '@media (max-width:600px)': {
+                fontSize: '1rem',
+              },
+            },
+            '& .MuiTypography-body2': {
+              fontSize: '1.1rem',
+              '@media (max-width:600px)': {
+                fontSize: '0.9rem',
+              },
+            },
+            '& .MuiChip-root': {
+              fontSize: '1.1rem',
+              '@media (max-width:600px)': {
+                fontSize: '0.9rem',
+              },
+            },
+          },
+        },
+      },
+    },
   }))
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'))
   const [mobileOpen, setMobileOpen] = useState(false)
-  const [activeTab, setActiveTab] = useState(0)
 
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen)
   }
 
-  const handleTabChange = (event, newValue) => {
-    setActiveTab(newValue)
-  }
-
   const drawer = (
     <Box sx={{ width: 320, height: '100%', display: 'flex', flexDirection: 'column' }}>
-      <Tabs 
-        value={activeTab} 
-        onChange={handleTabChange}
-        sx={{ borderBottom: 1, borderColor: 'divider' }}
-      >
-        <Tab label="Evidence" />
-        <Tab label="Tools" />
-      </Tabs>
-      <Box sx={{ flexGrow: 1, overflow: 'auto' }}>
-        {activeTab === 0 ? (
-          <EvidenceFilters />
-        ) : (
-          <Box sx={{ p: 2 }}>
-            <Typography variant="h6" gutterBottom>
-              Timers
-            </Typography>
-            <Box sx={{ mb: 3 }}>
-              <Typography variant="subtitle1" gutterBottom>
-                Smudge Timer
-              </Typography>
-              <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                Demon - 1 minute<br />
-                Spirit - 3 minutes<br />
-                All other ghosts - 1 minute 30 seconds
-              </Typography>
-            </Box>
-
-            <Box sx={{ mb: 3 }}>
-              <Typography variant="subtitle1" gutterBottom>
-                Hunt Cooldown
-              </Typography>
-              <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                Demon - 20 seconds<br />
-                All other ghosts - 25 seconds
-              </Typography>
-            </Box>
-          </Box>
-        )}
-      </Box>
+      {isMobile && <Toolbar />} {/* Spacer for fixed AppBar */}
+      <EvidenceFilters />
     </Box>
   )
 
@@ -84,81 +116,86 @@ function App() {
       <CssBaseline />
       <AppProvider>
         <Router>
-          <Box sx={{ display: 'flex', height: '100vh' }}>
-            {isMobile ? (
-              <>
-                <AppBar 
-                  position="fixed" 
+          <Box sx={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
+            <AppBar 
+              position={isMobile ? "fixed" : "static"}
+              sx={{ 
+                zIndex: (theme) => theme.zIndex.drawer + 1,
+                backgroundColor: 'background.paper',
+                borderBottom: 1,
+                borderColor: 'divider',
+                minHeight: '48px'
+              }}
+            >
+              <Toolbar sx={{ minHeight: '48px !important' }}>
+                {isMobile && (
+                  <IconButton
+                    color="inherit"
+                    aria-label="open drawer"
+                    edge="start"
+                    onClick={handleDrawerToggle}
+                    sx={{ mr: 2 }}
+                  >
+                    <MenuIcon />
+                  </IconButton>
+                )}
+                <Typography variant="subtitle1" noWrap component="div">
+                  Phasmo Filter — Supports v1.000.015
+                </Typography>
+              </Toolbar>
+            </AppBar>
+            <Box sx={{ display: 'flex', flexGrow: 1, overflow: 'hidden' }}>
+              {isMobile ? (
+                <>
+                  <Drawer
+                    variant="temporary"
+                    anchor="left"
+                    open={mobileOpen}
+                    onClose={handleDrawerToggle}
+                    ModalProps={{
+                      keepMounted: true, // Better open performance on mobile
+                    }}
+                    sx={{
+                      display: { xs: 'block', sm: 'none' },
+                      '& .MuiDrawer-paper': { 
+                        boxSizing: 'border-box', 
+                        width: 'auto',
+                        minWidth: 280,
+                        maxWidth: '85%',
+                        backgroundColor: 'background.paper'
+                      },
+                    }}
+                  >
+                    {drawer}
+                  </Drawer>
+                </>
+              ) : (
+                <Box
+                  component="nav"
                   sx={{ 
-                    zIndex: (theme) => theme.zIndex.drawer + 1,
-                    backgroundColor: 'background.paper',
-                    borderBottom: 1,
+                    width: 320, 
+                    flexShrink: 0,
+                    borderRight: 1,
                     borderColor: 'divider'
                   }}
                 >
-                  <Toolbar>
-                    <IconButton
-                      color="inherit"
-                      aria-label="open drawer"
-                      edge="start"
-                      onClick={handleDrawerToggle}
-                      sx={{ mr: 2 }}
-                    >
-                      <MenuIcon />
-                    </IconButton>
-                    <Typography variant="h6" noWrap component="div">
-                      Phasmo Filter
-                    </Typography>
-                  </Toolbar>
-                </AppBar>
-                <Drawer
-                  variant="temporary"
-                  anchor="left"
-                  open={mobileOpen}
-                  onClose={handleDrawerToggle}
-                  ModalProps={{
-                    keepMounted: true, // Better open performance on mobile
-                  }}
-                  sx={{
-                    display: { xs: 'block', sm: 'none' },
-                    '& .MuiDrawer-paper': { 
-                      boxSizing: 'border-box', 
-                      width: 'auto',
-                      minWidth: 280,
-                      maxWidth: '85%',
-                      backgroundColor: 'background.paper'
-                    },
-                  }}
-                >
                   {drawer}
-                </Drawer>
-              </>
-            ) : (
+                </Box>
+              )}
+
               <Box
-                component="nav"
-                sx={{ 
-                  width: 320, 
-                  flexShrink: 0,
-                  borderRight: 1,
-                  borderColor: 'divider'
+                component="main"
+                sx={{
+                  flexGrow: 1,
+                  p: { xs: 1, sm: 2 },
+                  width: { xs: '100%', sm: `calc(100% - 320px)` },
+                  height: '100%',
+                  overflow: 'auto'
                 }}
               >
-                {drawer}
+                {isMobile && <Toolbar sx={{ minHeight: '48px !important' }} />} {/* Spacer for fixed AppBar */}
+                <GhostCards />
               </Box>
-            )}
-
-            <Box
-              component="main"
-              sx={{
-                flexGrow: 1,
-                p: { xs: 2, sm: 3 },
-                width: { xs: '100%', sm: `calc(100% - 320px)` },
-                height: '100%',
-                overflow: 'auto'
-              }}
-            >
-              {isMobile && <Toolbar />} {/* Spacer for fixed AppBar */}
-              <GhostCards />
             </Box>
           </Box>
         </Router>
