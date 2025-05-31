@@ -21,6 +21,7 @@ const EvidenceFilters = () => {
     setSelectedHuntEvidence,
     searchQuery,
     setSearchQuery,
+    setExcludedGhosts,
     ghosts
   } = useApp();
 
@@ -376,7 +377,7 @@ const EvidenceFilters = () => {
 
       <Box sx={{ flexGrow: 1, overflow: 'auto' }}>
         {activeTab === 0 ? (
-          <Box sx={{ p: 2 }}>
+    <Box sx={{ p: 2 }}>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
               <Typography variant="h6" gutterBottom>
                 Evidence Filters
@@ -405,6 +406,9 @@ const EvidenceFilters = () => {
                     return acc;
                   }, {});
                   setSelectedHuntEvidence(resetHuntEvidence);
+
+                  // Reset excluded ghosts
+                  setExcludedGhosts(new Set());
 
                   // Clear search
                   setSearchQuery('');
@@ -443,9 +447,9 @@ const EvidenceFilters = () => {
               }}
             />
 
-            <Typography variant="h6" gutterBottom>
+      <Typography variant="h6" gutterBottom>
               Evidence
-            </Typography>
+      </Typography>
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, mb: 2 }}>
               {[
                 'EMF 5',

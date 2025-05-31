@@ -107,7 +107,7 @@ function App() {
   const drawer = (
     <Box sx={{ width: 320, height: '100%', display: 'flex', flexDirection: 'column' }}>
       {isMobile && <Toolbar />} {/* Spacer for fixed AppBar */}
-      <EvidenceFilters />
+          <EvidenceFilters />
     </Box>
   )
 
@@ -117,84 +117,84 @@ function App() {
       <AppProvider>
         <Router>
           <Box sx={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
-            <AppBar 
+                <AppBar 
               position={isMobile ? "fixed" : "static"}
-              sx={{ 
-                zIndex: (theme) => theme.zIndex.drawer + 1,
-                backgroundColor: 'background.paper',
-                borderBottom: 1,
+                  sx={{ 
+                    zIndex: (theme) => theme.zIndex.drawer + 1,
+                    backgroundColor: 'background.paper',
+                    borderBottom: 1,
                 borderColor: 'divider',
                 minHeight: '48px'
-              }}
-            >
+                  }}
+                >
               <Toolbar sx={{ minHeight: '48px !important' }}>
                 {isMobile && (
-                  <IconButton
-                    color="inherit"
-                    aria-label="open drawer"
-                    edge="start"
-                    onClick={handleDrawerToggle}
-                    sx={{ mr: 2 }}
-                  >
-                    <MenuIcon />
-                  </IconButton>
+                    <IconButton
+                      color="inherit"
+                      aria-label="open drawer"
+                      edge="start"
+                      onClick={handleDrawerToggle}
+                      sx={{ mr: 2 }}
+                    >
+                      <MenuIcon />
+                    </IconButton>
                 )}
                 <Typography variant="subtitle1" noWrap component="div">
                   Phasmo Filter — Supports v1.000.015
-                </Typography>
-              </Toolbar>
-            </AppBar>
+                    </Typography>
+                  </Toolbar>
+                </AppBar>
             <Box sx={{ display: 'flex', flexGrow: 1, overflow: 'hidden' }}>
               {isMobile ? (
                 <>
-                  <Drawer
-                    variant="temporary"
-                    anchor="left"
-                    open={mobileOpen}
-                    onClose={handleDrawerToggle}
-                    ModalProps={{
-                      keepMounted: true, // Better open performance on mobile
-                    }}
-                    sx={{
-                      display: { xs: 'block', sm: 'none' },
-                      '& .MuiDrawer-paper': { 
-                        boxSizing: 'border-box', 
-                        width: 'auto',
-                        minWidth: 280,
-                        maxWidth: '85%',
-                        backgroundColor: 'background.paper'
-                      },
-                    }}
-                  >
-                    {drawer}
-                  </Drawer>
-                </>
-              ) : (
-                <Box
-                  component="nav"
-                  sx={{ 
-                    width: 320, 
-                    flexShrink: 0,
-                    borderRight: 1,
-                    borderColor: 'divider'
+                <Drawer
+                  variant="temporary"
+                  anchor="left"
+                  open={mobileOpen}
+                  onClose={handleDrawerToggle}
+                  ModalProps={{
+                    keepMounted: true, // Better open performance on mobile
+                  }}
+                  sx={{
+                    display: { xs: 'block', sm: 'none' },
+                    '& .MuiDrawer-paper': { 
+                      boxSizing: 'border-box', 
+                      width: 'auto',
+                      minWidth: 280,
+                      maxWidth: '85%',
+                      backgroundColor: 'background.paper'
+                    },
                   }}
                 >
                   {drawer}
-                </Box>
-              )}
-
+                </Drawer>
+              </>
+            ) : (
               <Box
-                component="main"
-                sx={{
-                  flexGrow: 1,
-                  p: { xs: 1, sm: 2 },
-                  width: { xs: '100%', sm: `calc(100% - 320px)` },
-                  height: '100%',
-                  overflow: 'auto'
+                component="nav"
+                sx={{ 
+                  width: 320, 
+                  flexShrink: 0,
+                  borderRight: 1,
+                  borderColor: 'divider'
                 }}
               >
+                {drawer}
+              </Box>
+            )}
+
+            <Box
+              component="main"
+              sx={{
+                flexGrow: 1,
+                  p: { xs: 1, sm: 2 },
+                width: { xs: '100%', sm: `calc(100% - 320px)` },
+                height: '100%',
+                overflow: 'auto'
+              }}
+            >
                 {isMobile && <Toolbar sx={{ minHeight: '48px !important' }} />} {/* Spacer for fixed AppBar */}
-                <GhostCards />
+              <GhostCards />
               </Box>
             </Box>
           </Box>

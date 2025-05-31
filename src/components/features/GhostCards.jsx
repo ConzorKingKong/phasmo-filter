@@ -1,8 +1,9 @@
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import { Box, Card, CardContent, Typography, Chip, Grid, Divider, IconButton } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import CloseIcon from '@mui/icons-material/Close';
 import VolumeUpIcon from '@mui/icons-material/VolumeUp';
+import DeleteIcon from '@mui/icons-material/Delete';
 import { useApp } from '../../context/AppContext';
 
 const GhostCards = () => {
@@ -11,8 +12,11 @@ const GhostCards = () => {
     selectedEvidence, 
     selectedSpeed,
     selectedHuntEvidence,
+    setSelectedHuntEvidence,
     searchQuery,
-    showDescriptions
+    showDescriptions,
+    excludedGhosts,
+    setExcludedGhosts
   } = useApp();
 
   const audioRef = useRef(new Audio('/sounds/banshee_scream.mp3'));
@@ -140,7 +144,43 @@ const GhostCards = () => {
     return evidenceMatch && speedMatch && huntEvidenceMatch;
   };
 
+  const handleTrashClick = (ghost) => {
+    // Add ghost to excluded set
+    setExcludedGhosts(prev => {
+      const newExcluded = new Set([...prev, ghost.ghost]);
+      
+      // Find all evidence associated with this ghost
+      const ghostEvidence = Object.entries(huntEvidenceMap)
+        .filter(([_, ghostNames]) => ghostNames.includes(ghost.ghost))
+        .map(([evidenceId]) => evidenceId);
+
+      // Set evidence to excluded (false) if either:
+      // 1. It's exclusively associated with this ghost, or
+      // 2. All other ghosts associated with this evidence are in the excluded set
+      setSelectedHuntEvidence(prevEvidence => {
+        const newState = { ...prevEvidence };
+        ghostEvidence.forEach(evidenceId => {
+          const associatedGhosts = huntEvidenceMap[evidenceId];
+          const isExclusive = associatedGhosts.length === 1;
+          const allGhostsExcluded = associatedGhosts.every(g => newExcluded.has(g));
+
+          if (isExclusive || allGhostsExcluded) {
+            newState[evidenceId] = false;
+          }
+        });
+        return newState;
+      });
+
+      return newExcluded;
+    });
+  };
+
   const filteredGhosts = ghosts.filter(ghost => {
+    // Don't show excluded ghosts
+    if (excludedGhosts.has(ghost.ghost)) {
+      return false;
+    }
+
     // If there's a search query, show matching ghosts regardless of filters
     if (searchQuery && ghost.ghost.toLowerCase().includes(searchQuery.toLowerCase())) {
       return true;
@@ -196,12 +236,26 @@ const GhostCards = () => {
                 boxShadow: isSearchMatch ? '0 0 10px rgba(255, 255, 255, 0.5)' : 'none'
               }}
             >
+              <IconButton
+                onClick={() => handleTrashClick(ghost)}
+                sx={{
+                  position: 'absolute',
+                  top: 8,
+                  right: 8,
+                  color: 'error.main',
+                  '&:hover': {
+                    color: 'error.dark'
+                  }
+                }}
+              >
+                <DeleteIcon />
+              </IconButton>
               {isSearchMatch && (
                 <SearchIcon 
                   sx={{ 
                     position: 'absolute',
                     top: 8,
-                    right: 8,
+                    right: 48,
                     color: 'white',
                     opacity: 0.7
                   }} 
@@ -218,7 +272,7 @@ const GhostCards = () => {
                   }} 
                 />
               )}
-          <CardContent>
+              <CardContent>
                 <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
                   <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
                     {ghost.ghost}
@@ -241,20 +295,20 @@ const GhostCards = () => {
                 {showDescriptions && (
                   <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
                     {ghost.description}
-            </Typography>
+                  </Typography>
                 )}
-            <Box sx={{ mb: 2 }}>
-              <Typography variant="subtitle2" gutterBottom>
+                <Box sx={{ mb: 2 }}>
+                  <Typography variant="subtitle2" gutterBottom>
                     Evidence
-              </Typography>
+                  </Typography>
                   <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-                {ghost.evidence.map((evidence) => (
-                  <Chip
-                    key={evidence}
-                    label={getEvidenceLabel(evidence)}
-                    size="small"
-                  />
-                ))}
+                    {ghost.evidence.map((evidence) => (
+                      <Chip
+                        key={evidence}
+                        label={getEvidenceLabel(evidence)}
+                        size="small"
+                      />
+                    ))}
                   </Box>
                 </Box>
                 <Divider sx={{ my: 1 }} />
@@ -277,7 +331,7 @@ const GhostCards = () => {
                     {ghost.alt_speed && ` (Alt: ${ghost.alt_speed} m/s)`}
                     {ghost.has_los && ' (Speeds up when line of sight)'}
                   </Typography>
-            </Box>
+                </Box>
                 <Divider sx={{ my: 1 }} />
                 <Box sx={{ mb: 1 }}>
                   <Typography variant="subtitle2">Extra Info</Typography>
@@ -296,13 +350,13 @@ const GhostCards = () => {
                       {ghost.wiki.abilities?.filter(t => t.include_on_card).map((t, i) => (
                         <Typography key={`a${i}`} variant="body2" sx={{ mb: 0.5 }}>
                           • {t.data}
-            </Typography>
+                        </Typography>
                       ))}
                     </>
                   )}
                 </Box>
-          </CardContent>
-        </Card>
+              </CardContent>
+            </Card>
           </Grid>
         );
       })}
@@ -310,4 +364,4 @@ const GhostCards = () => {
   );
 };
 
-export default GhostCards; 
+export default GhostCards;

@@ -10,6 +10,7 @@ export const AppProvider = ({ children }) => {
   const [selectedSpeed, setSelectedSpeed] = useState({})
   const [selectedHuntEvidence, setSelectedHuntEvidence] = useState({})
   const [searchQuery, setSearchQuery] = useState('')
+  const [excludedGhosts, setExcludedGhosts] = useState(new Set())
   const [settings, setSettings] = useState({
     darkMode: true,
     fontSize: 'medium'
@@ -54,6 +55,8 @@ export const AppProvider = ({ children }) => {
     setSelectedHuntEvidence,
     searchQuery,
     setSearchQuery,
+    excludedGhosts,
+    setExcludedGhosts,
     settings,
     setSettings,
     updateSettings,
