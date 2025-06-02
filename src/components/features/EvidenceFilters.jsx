@@ -41,6 +41,14 @@ const EvidenceFilters = () => {
   const [speedExpanded, setSpeedExpanded] = useState(true);
   const [huntEvidenceExpanded, setHuntEvidenceExpanded] = useState(true);
 
+  // Create a map of ghost names to their original indices
+  const originalOrder = React.useMemo(() => {
+    return ghosts.reduce((acc, ghost, index) => {
+      acc[ghost.ghost] = index;
+      return acc;
+    }, {});
+  }, [ghosts]);
+
   const handleTabChange = (event, newValue) => {
     setActiveTab(newValue);
   };
@@ -792,8 +800,12 @@ const EvidenceFilters = () => {
                       }
                     }
 
-                    // Finally sort by original order
-                    return 0;
+                    // Finally sort by the original ghost order
+                    const aGhosts = a.ghost.split(', ');
+                    const bGhosts = b.ghost.split(', ');
+                    const aMinIndex = Math.min(...aGhosts.map(g => originalOrder[g] ?? Infinity));
+                    const bMinIndex = Math.min(...bGhosts.map(g => originalOrder[g] ?? Infinity));
+                    return aMinIndex - bMinIndex;
                   })
                   .map((evidence) => {
                     const isFiltered = evidence.ghost.split(', ').every(ghostName => isGhostFilteredOut(ghostName));
