@@ -386,6 +386,7 @@ const EvidenceFilters = () => {
       >
         <Tab label="Filters" />
         <Tab label="Timers" />
+        <Tab label="Extra Information" />
       </Tabs>
 
       <Box sx={{ flexGrow: 1, overflow: 'auto' }}>
@@ -905,7 +906,7 @@ const EvidenceFilters = () => {
               </Box>
             </Collapse>
           </Box>
-        ) : (
+        ) : activeTab === 1 ? (
           <Box sx={{ p: 2 }}>
             <Box sx={{ mb: 3 }}>
               <Typography variant="subtitle1" gutterBottom>
@@ -968,6 +969,40 @@ const EvidenceFilters = () => {
                   Reset
                 </Button>
               </Box>
+            </Box>
+          </Box>
+        ) : (
+          <Box sx={{ p: 2 }}>
+            <Typography variant="h6" gutterBottom>
+              Movement Speeds
+            </Typography>
+            <Box sx={{ mb: 2 }}>
+              <Typography variant="body1" sx={{ mb: 1 }}>
+                Player Speeds:
+              </Typography>
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                • Walking speed = 1.6 m/s
+              </Typography>
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                • Running speed = 3 m/s for 3s, 5s cooldown
+              </Typography>
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                • Player speeds are not affected by crouching
+              </Typography>
+
+              <Typography variant="body1" sx={{ mb: 1 }}>
+                Ghost Speeds:
+              </Typography>
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                • Default movement speed = 1.7 m/s
+              </Typography>
+
+              <Typography variant="body1" sx={{ mb: 1 }}>
+                Speed Identification:
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                Since player walking speed is 1.6 m/s, identifying ghosts slower than the default 1.7 meters per second is easy, as you will walk faster than them while looping out of LOS (crouched)
+              </Typography>
             </Box>
           </Box>
         )}
