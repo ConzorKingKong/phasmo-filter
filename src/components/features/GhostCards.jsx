@@ -117,8 +117,8 @@ const GhostCards = () => {
           if (state === false) return speeds.every(speed => speed >= normalSpeed);
           break;
         case 'normal':
-          if (state === true) return speeds.every(speed => speed === normalSpeed);
-          if (state === false) return speeds.some(speed => speed !== normalSpeed);
+          if (state === true) return speeds.some(speed => speed === normalSpeed);
+          if (state === false) return speeds.every(speed => speed !== normalSpeed);
           break;
         case 'fast':
           if (state === true) return speeds.some(speed => speed > normalSpeed);
