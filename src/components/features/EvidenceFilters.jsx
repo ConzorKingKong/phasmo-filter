@@ -1,5 +1,5 @@
 import React, { useRef, useState } from 'react';
-import { Box, Typography, Checkbox, FormControlLabel, Divider, TextField, InputAdornment, IconButton, Tabs, Tab, Button } from '@mui/material';
+import { Box, Typography, Checkbox, FormControlLabel, Divider, TextField, InputAdornment, IconButton, Tabs, Tab, Button, Collapse } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import VolumeUpIcon from '@mui/icons-material/VolumeUp';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
@@ -9,6 +9,8 @@ import CloseIcon from '@mui/icons-material/Close';
 import RestartAltIcon from '@mui/icons-material/RestartAlt';
 import FilterAltIcon from '@mui/icons-material/FilterAlt';
 import CancelIcon from '@mui/icons-material/Cancel';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import { useApp } from '../../context/AppContext';
 
 const EvidenceFilters = () => {
@@ -35,6 +37,9 @@ const EvidenceFilters = () => {
   const huntCooldownTimerRef = useRef(null);
   const startSoundRef = useRef(new Audio('/sounds/start.mp3'));
   const stopSoundRef = useRef(new Audio('/sounds/stop.mp3'));
+  const [evidenceExpanded, setEvidenceExpanded] = useState(false);
+  const [speedExpanded, setSpeedExpanded] = useState(true);
+  const [huntEvidenceExpanded, setHuntEvidenceExpanded] = useState(true);
 
   const handleTabChange = (event, newValue) => {
     setActiveTab(newValue);
@@ -372,7 +377,7 @@ const EvidenceFilters = () => {
         sx={{ borderBottom: 1, borderColor: 'divider' }}
       >
         <Tab label="Filters" />
-        <Tab label="Tools" />
+        <Tab label="Timers" />
       </Tabs>
 
       <Box sx={{ flexGrow: 1, overflow: 'auto' }}>
@@ -447,431 +452,449 @@ const EvidenceFilters = () => {
               }}
             />
 
-      <Typography variant="h6" gutterBottom>
-              Evidence
-      </Typography>
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, mb: 2 }}>
-              {[
-                'EMF 5',
-                'Spirit Box',
-                'Ultraviolet',
-                'Ghost Orbs',
-                'Writing',
-                'Freezing',
-                'DOTs'
-              ]
-                .slice()
-                .sort((a, b) => {
-                  // First sort by filtered status
-                  const aFiltered = !ghosts.some(ghost => 
-                    ghost.evidence.includes(a) && 
-                    !Object.entries(selectedEvidence).some(([evidence, state]) => 
-                      state === false && ghost.evidence.includes(evidence)
-                    )
-                  );
-                  const bFiltered = !ghosts.some(ghost => 
-                    ghost.evidence.includes(b) && 
-                    !Object.entries(selectedEvidence).some(([evidence, state]) => 
-                      state === false && ghost.evidence.includes(evidence)
-                    )
-                  );
-                  if (aFiltered !== bFiltered) {
-                    return aFiltered ? 1 : -1;
-                  }
+            <Box sx={{ display: 'flex', alignItems: 'center', mb: 1, cursor: 'pointer' }} onClick={() => setEvidenceExpanded(!evidenceExpanded)}>
+              <Typography variant="h6" sx={{ flexGrow: 1 }}>
+                Standard Evidence
+              </Typography>
+              <IconButton>
+                {evidenceExpanded ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+              </IconButton>
+            </Box>
+            <Collapse in={evidenceExpanded}>
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, mb: 2 }}>
+                {[
+                  'EMF 5',
+                  'Spirit Box',
+                  'Ultraviolet',
+                  'Ghost Orbs',
+                  'Writing',
+                  'Freezing',
+                  'DOTs'
+                ]
+                  .slice()
+                  .sort((a, b) => {
+                    // First sort by filtered status
+                    const aFiltered = !ghosts.some(ghost => 
+                      ghost.evidence.includes(a) && 
+                      !Object.entries(selectedEvidence).some(([evidence, state]) => 
+                        state === false && ghost.evidence.includes(evidence)
+                      )
+                    );
+                    const bFiltered = !ghosts.some(ghost => 
+                      ghost.evidence.includes(b) && 
+                      !Object.entries(selectedEvidence).some(([evidence, state]) => 
+                        state === false && ghost.evidence.includes(evidence)
+                      )
+                    );
+                    if (aFiltered !== bFiltered) {
+                      return aFiltered ? 1 : -1;
+                    }
 
-                  // Then sort by evidence state (neutral first)
-                  const aState = selectedEvidence[a];
-                  const bState = selectedEvidence[b];
-                  if (aState !== bState) {
-                    // If either is undefined (neutral), it goes first
-                    if (aState === undefined) return -1;
-                    if (bState === undefined) return 1;
-                    // Otherwise maintain relative order
+                    // Then sort by evidence state (neutral first)
+                    const aState = selectedEvidence[a];
+                    const bState = selectedEvidence[b];
+                    if (aState !== bState) {
+                      // If either is undefined (neutral), it goes first
+                      if (aState === undefined) return -1;
+                      if (bState === undefined) return 1;
+                      // Otherwise maintain relative order
+                      return 0;
+                    }
+
+                    // Then sort by search match
+                    const aMatchesSearch = searchQuery && 
+                      ghosts.some(ghost => 
+                        ghost.ghost.toLowerCase().includes(searchQuery.toLowerCase().trim()) && 
+                        ghost.evidence.includes(a)
+                      );
+                    const bMatchesSearch = searchQuery && 
+                      ghosts.some(ghost => 
+                        ghost.ghost.toLowerCase().includes(searchQuery.toLowerCase().trim()) && 
+                        ghost.evidence.includes(b)
+                      );
+                    if (aMatchesSearch !== bMatchesSearch) {
+                      return aMatchesSearch ? -1 : 1;
+                    }
+
+                    // Finally sort by original order
                     return 0;
-                  }
-
-                  // Then sort by search match
-                  const aMatchesSearch = searchQuery && 
-                    ghosts.some(ghost => 
-                      ghost.ghost.toLowerCase().includes(searchQuery.toLowerCase().trim()) && 
-                      ghost.evidence.includes(a)
+                  })
+                  .map((evidence) => {
+                    const isFiltered = !ghosts.some(ghost => 
+                      ghost.evidence.includes(evidence) && 
+                      !Object.entries(selectedEvidence).some(([evidence, state]) => 
+                        state === false && ghost.evidence.includes(evidence)
+                      )
                     );
-                  const bMatchesSearch = searchQuery && 
-                    ghosts.some(ghost => 
-                      ghost.ghost.toLowerCase().includes(searchQuery.toLowerCase().trim()) && 
-                      ghost.evidence.includes(b)
-                    );
-                  if (aMatchesSearch !== bMatchesSearch) {
-                    return aMatchesSearch ? -1 : 1;
-                  }
-
-                  // Finally sort by original order
-                  return 0;
-                })
-                .map((evidence) => {
-                  const isFiltered = !ghosts.some(ghost => 
-                    ghost.evidence.includes(evidence) && 
-                    !Object.entries(selectedEvidence).some(([evidence, state]) => 
-                      state === false && ghost.evidence.includes(evidence)
-                    )
-                  );
-                  const isExcluded = selectedEvidence[evidence] === false;
-                  const isIncluded = selectedEvidence[evidence] === true;
-                  return (
-                    <Box
-                      key={evidence}
-                      sx={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 1,
-                        p: 0.5,
-                        borderRadius: 1,
-                        bgcolor: isExcluded ? 'error.dark' : isIncluded ? 'success.dark' : 'transparent',
-                        '&:hover': {
-                          bgcolor: isExcluded ? 'error.dark' : isIncluded ? 'success.dark' : 'action.hover',
-                        },
-                        cursor: 'pointer',
-                        opacity: isFiltered ? 0.5 : 1,
-                      }}
-                      onClick={() => handleEvidenceClick(evidence)}
-                    >
-                      <Checkbox
-                        checked={isIncluded}
+                    const isExcluded = selectedEvidence[evidence] === false;
+                    const isIncluded = selectedEvidence[evidence] === true;
+                    return (
+                      <Box
+                        key={evidence}
                         sx={{
-                          color: isFiltered ? 'text.disabled' : 'text.secondary',
-                          '&.Mui-checked': {
-                            color: isFiltered ? 'text.disabled' : 'success.main',
-                          },
-                        }}
-                      />
-                      <Box sx={{ 
-                        flexGrow: 1,
-                        display: 'flex',
-                        alignItems: 'center',
-                        color: isFiltered ? 'text.disabled' :
-                               isExcluded ? 'error.main' :
-                               isIncluded ? 'success.main' :
-                               'text.primary'
-                      }}>
-                        {getEvidenceLabel(evidence)}
-                        {isEvidenceInSearchResults(evidence) && (
-                          <FilterAltIcon 
-                            sx={{ 
-                              ml: 1, 
-                              fontSize: '1rem',
-                              color: 'primary.main',
-                              opacity: 0.7
-                            }} 
-                          />
-                        )}
-                      </Box>
-                      <IconButton
-                        size="small"
-                        onClick={(e) => handleEvidenceExclude(evidence, e)}
-                        sx={{
-                          color: isExcluded ? 'error.main' : 'text.secondary',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 1,
+                          p: 0.5,
+                          borderRadius: 1,
+                          bgcolor: isExcluded ? 'error.dark' : isIncluded ? 'success.dark' : 'transparent',
                           '&:hover': {
-                            color: 'error.main',
+                            bgcolor: isExcluded ? 'error.dark' : isIncluded ? 'success.dark' : 'action.hover',
                           },
+                          cursor: 'pointer',
                           opacity: isFiltered ? 0.5 : 1,
                         }}
+                        onClick={() => handleEvidenceClick(evidence)}
                       >
-                        <CancelIcon fontSize="small" />
-                      </IconButton>
-                    </Box>
-                  );
-                })}
-            </Box>
+                        <Checkbox
+                          checked={isIncluded}
+                          sx={{
+                            color: isFiltered ? 'text.disabled' : 'text.secondary',
+                            '&.Mui-checked': {
+                              color: isFiltered ? 'text.disabled' : 'success.main',
+                            },
+                          }}
+                        />
+                        <Box sx={{ 
+                          flexGrow: 1,
+                          display: 'flex',
+                          alignItems: 'center',
+                          color: isFiltered ? 'text.disabled' :
+                                 isExcluded ? 'error.main' :
+                                 isIncluded ? 'success.main' :
+                                 'text.primary'
+                        }}>
+                          {getEvidenceLabel(evidence)}
+                          {isEvidenceInSearchResults(evidence) && (
+                            <FilterAltIcon 
+                              sx={{ 
+                                ml: 1, 
+                                fontSize: '1rem',
+                                color: 'primary.main',
+                                opacity: 0.7
+                              }} 
+                            />
+                          )}
+                        </Box>
+                        <IconButton
+                          size="small"
+                          onClick={(e) => handleEvidenceExclude(evidence, e)}
+                          sx={{
+                            color: isExcluded ? 'error.main' : 'text.secondary',
+                            '&:hover': {
+                              color: 'error.main',
+                            },
+                            opacity: isFiltered ? 0.5 : 1,
+                          }}
+                        >
+                          <CancelIcon fontSize="small" />
+                        </IconButton>
+                      </Box>
+                    );
+                  })}
+              </Box>
+            </Collapse>
 
             <Divider sx={{ my: 2 }} />
 
-            <Typography variant="h6" gutterBottom>
-              Speed
-            </Typography>
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, mb: 2 }}>
-              {[
-                { id: 'slow', label: 'Slow (< 1.7 m/s)' },
-                { id: 'normal', label: 'Normal (1.7 m/s)' },
-                { id: 'fast', label: 'Fast (> 1.7 m/s)' },
-                { id: 'los', label: 'LOS Speed Up' }
-              ]
-                .slice()
-                .sort((a, b) => {
-                  // Only sort by search match
-                  const aMatchesSearch = isSpeedInSearchResults(a.id);
-                  const bMatchesSearch = isSpeedInSearchResults(b.id);
-                  if (aMatchesSearch !== bMatchesSearch) {
-                    return aMatchesSearch ? -1 : 1;
-                  }
-
-                  // Maintain original order
-                  return 0;
-                })
-                .map((speed) => {
-                  const isFiltered = !ghosts.some(ghost => {
-                    if (!ghost.ghost.toLowerCase().includes(searchQuery.toLowerCase().trim())) return false;
-                    
-                    const minSpeed = parseFloat(ghost.min_speed);
-                    const maxSpeed = parseFloat(ghost.max_speed);
-                    const altSpeed = parseFloat(ghost.alt_speed);
-                    const normalSpeed = 1.7;
-                    
-                    const speeds = [];
-                    if (!isNaN(minSpeed)) speeds.push(minSpeed);
-                    if (!isNaN(maxSpeed)) speeds.push(maxSpeed);
-                    if (!isNaN(altSpeed)) speeds.push(altSpeed);
-                    
-                    if (speeds.length === 0) return false;
-                    
-                    switch (speed.id) {
-                      case 'slow':
-                        return speeds.some(speed => speed < normalSpeed);
-                      case 'normal':
-                        return speeds.every(speed => speed === normalSpeed);
-                      case 'fast':
-                        return speeds.some(speed => speed > normalSpeed);
-                      case 'los':
-                        return ghost.has_los === true;
+            <Box sx={{ display: 'flex', alignItems: 'center', mb: 1, cursor: 'pointer' }} onClick={() => setSpeedExpanded(!speedExpanded)}>
+              <Typography variant="h6" sx={{ flexGrow: 1 }}>
+                Speed
+              </Typography>
+              <IconButton>
+                {speedExpanded ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+              </IconButton>
+            </Box>
+            <Collapse in={speedExpanded}>
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, mb: 2 }}>
+                {[
+                  { id: 'slow', label: 'Slow (< 1.7 m/s)' },
+                  { id: 'normal', label: 'Normal (1.7 m/s)' },
+                  { id: 'fast', label: 'Fast (> 1.7 m/s)' },
+                  { id: 'los', label: 'LOS Speed Up' }
+                ]
+                  .slice()
+                  .sort((a, b) => {
+                    // Only sort by search match
+                    const aMatchesSearch = isSpeedInSearchResults(a.id);
+                    const bMatchesSearch = isSpeedInSearchResults(b.id);
+                    if (aMatchesSearch !== bMatchesSearch) {
+                      return aMatchesSearch ? -1 : 1;
                     }
-                    return false;
-                  });
-                  const isExcluded = selectedSpeed[speed.id] === false;
-                  const isIncluded = selectedSpeed[speed.id] === true;
-                  return (
-                    <Box
-                      key={speed.id}
-                      sx={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 1,
-                        p: 0.5,
-                        borderRadius: 1,
-                        bgcolor: isExcluded ? 'error.dark' : isIncluded ? 'success.dark' : 'transparent',
-                        '&:hover': {
-                          bgcolor: isExcluded ? 'error.dark' : isIncluded ? 'success.dark' : 'action.hover',
-                        },
-                        cursor: 'pointer',
-                        opacity: isFiltered ? 0.5 : 1,
-                      }}
-                      onClick={() => handleSpeedClick(speed.id)}
-                    >
-                      <Checkbox
-                        checked={isIncluded}
+
+                    // Maintain original order
+                    return 0;
+                  })
+                  .map((speed) => {
+                    const isFiltered = !ghosts.some(ghost => {
+                      if (!ghost.ghost.toLowerCase().includes(searchQuery.toLowerCase().trim())) return false;
+                      
+                      const minSpeed = parseFloat(ghost.min_speed);
+                      const maxSpeed = parseFloat(ghost.max_speed);
+                      const altSpeed = parseFloat(ghost.alt_speed);
+                      const normalSpeed = 1.7;
+                      
+                      const speeds = [];
+                      if (!isNaN(minSpeed)) speeds.push(minSpeed);
+                      if (!isNaN(maxSpeed)) speeds.push(maxSpeed);
+                      if (!isNaN(altSpeed)) speeds.push(altSpeed);
+                      
+                      if (speeds.length === 0) return false;
+                      
+                      switch (speed.id) {
+                        case 'slow':
+                          return speeds.some(speed => speed < normalSpeed);
+                        case 'normal':
+                          return speeds.every(speed => speed === normalSpeed);
+                        case 'fast':
+                          return speeds.some(speed => speed > normalSpeed);
+                        case 'los':
+                          return ghost.has_los === true;
+                      }
+                      return false;
+                    });
+                    const isExcluded = selectedSpeed[speed.id] === false;
+                    const isIncluded = selectedSpeed[speed.id] === true;
+                    return (
+                      <Box
+                        key={speed.id}
                         sx={{
-                          color: isFiltered ? 'text.disabled' : 'text.secondary',
-                          '&.Mui-checked': {
-                            color: isFiltered ? 'text.disabled' : 'success.main',
-                          },
-                        }}
-                      />
-                      <Box sx={{ 
-                        flexGrow: 1,
-                        display: 'flex',
-                        alignItems: 'center',
-                        color: isFiltered ? 'text.disabled' :
-                               isExcluded ? 'error.main' :
-                               isIncluded ? 'success.main' :
-                               'text.primary'
-                      }}>
-                        {speed.label}
-                        {isSpeedInSearchResults(speed.id) && (
-                          <FilterAltIcon 
-                            sx={{ 
-                              ml: 1, 
-                              fontSize: '1rem',
-                              color: 'primary.main',
-                              opacity: 0.7
-                            }} 
-                          />
-                        )}
-                      </Box>
-                      <IconButton
-                        size="small"
-                        onClick={(e) => handleSpeedExclude(speed.id, e)}
-                        sx={{
-                          color: isExcluded ? 'error.main' : 'text.secondary',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 1,
+                          p: 0.5,
+                          borderRadius: 1,
+                          bgcolor: isExcluded ? 'error.dark' : isIncluded ? 'success.dark' : 'transparent',
                           '&:hover': {
-                            color: 'error.main',
+                            bgcolor: isExcluded ? 'error.dark' : isIncluded ? 'success.dark' : 'action.hover',
                           },
+                          cursor: 'pointer',
                           opacity: isFiltered ? 0.5 : 1,
                         }}
+                        onClick={() => handleSpeedClick(speed.id)}
                       >
-                        <CancelIcon fontSize="small" />
-                      </IconButton>
-                    </Box>
-                  );
-                })}
-            </Box>
+                        <Checkbox
+                          checked={isIncluded}
+                          sx={{
+                            color: isFiltered ? 'text.disabled' : 'text.secondary',
+                            '&.Mui-checked': {
+                              color: isFiltered ? 'text.disabled' : 'success.main',
+                            },
+                          }}
+                        />
+                        <Box sx={{ 
+                          flexGrow: 1,
+                          display: 'flex',
+                          alignItems: 'center',
+                          color: isFiltered ? 'text.disabled' :
+                                 isExcluded ? 'error.main' :
+                                 isIncluded ? 'success.main' :
+                                 'text.primary'
+                        }}>
+                          {speed.label}
+                          {isSpeedInSearchResults(speed.id) && (
+                            <FilterAltIcon 
+                              sx={{ 
+                                ml: 1, 
+                                fontSize: '1rem',
+                                color: 'primary.main',
+                                opacity: 0.7
+                              }} 
+                            />
+                          )}
+                        </Box>
+                        <IconButton
+                          size="small"
+                          onClick={(e) => handleSpeedExclude(speed.id, e)}
+                          sx={{
+                            color: isExcluded ? 'error.main' : 'text.secondary',
+                            '&:hover': {
+                              color: 'error.main',
+                            },
+                            opacity: isFiltered ? 0.5 : 1,
+                          }}
+                        >
+                          <CancelIcon fontSize="small" />
+                        </IconButton>
+                      </Box>
+                    );
+                  })}
+              </Box>
+            </Collapse>
 
             <Divider sx={{ my: 2 }} />
 
-            <Typography variant="h6" gutterBottom>
-              Unique Evidence
-            </Typography>
-            <TextField
-              fullWidth
-              variant="outlined"
-              placeholder="Search unique evidence..."
-              value={huntEvidenceSearch}
-              onChange={(e) => setHuntEvidenceSearch(e.target.value)}
-              sx={{ mb: 2 }}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <SearchIcon />
-                  </InputAdornment>
-                ),
-                endAdornment: huntEvidenceSearch && (
-                  <InputAdornment position="end">
-                    <IconButton
-                      onClick={() => setHuntEvidenceSearch('')}
-                      edge="end"
-                      size="small"
-                    >
-                      <CloseIcon />
-                    </IconButton>
-                  </InputAdornment>
-                )
-              }}
-            />
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-              {huntEvidenceList
-                .slice()
-                .sort((a, b) => {
-                  // First sort by filtered status
-                  const aFiltered = a.ghost.split(', ').every(ghostName => isGhostFilteredOut(ghostName));
-                  const bFiltered = b.ghost.split(', ').every(ghostName => isGhostFilteredOut(ghostName));
-                  if (aFiltered !== bFiltered) {
-                    return aFiltered ? 1 : -1;
-                  }
-
-                  // Then sort by search match
-                  const aMatchesSearch = huntEvidenceSearch && 
-                    a.label.toLowerCase().includes(huntEvidenceSearch.toLowerCase());
-                  const bMatchesSearch = huntEvidenceSearch && 
-                    b.label.toLowerCase().includes(huntEvidenceSearch.toLowerCase());
-                  if (aMatchesSearch !== bMatchesSearch) {
-                    return aMatchesSearch ? -1 : 1;
-                  }
-
-                  // Then sort by ghost match if there's a search query
-                  if (searchQuery) {
-                    const aGhostMatches = a.ghost.split(', ').some(ghostName => 
-                      ghostName.toLowerCase().includes(searchQuery.toLowerCase().trim())
-                    );
-                    const bGhostMatches = b.ghost.split(', ').some(ghostName => 
-                      ghostName.toLowerCase().includes(searchQuery.toLowerCase().trim())
-                    );
-                    if (aGhostMatches !== bGhostMatches) {
-                      return aGhostMatches ? -1 : 1;
-                    }
-                  }
-
-                  // Finally sort by original order
-                  return 0;
-                })
-                .map((evidence) => {
-                  const isFiltered = evidence.ghost.split(', ').every(ghostName => isGhostFilteredOut(ghostName));
-                  const matchesSearch = huntEvidenceSearch && 
-                    evidence.label.toLowerCase().includes(huntEvidenceSearch.toLowerCase());
-                  const isExcluded = selectedHuntEvidence[evidence.id] === false;
-                  const isIncluded = selectedHuntEvidence[evidence.id] === true;
-                  return (
-                    <Box
-                      key={evidence.id}
-                      sx={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 1,
-                        p: 0.5,
-                        borderRadius: 1,
-                        bgcolor: isExcluded ? 'error.dark' : isIncluded ? 'success.dark' : 'transparent',
-                        '&:hover': {
-                          bgcolor: isExcluded ? 'error.dark' : isIncluded ? 'success.dark' : 'action.hover',
-                        },
-                        cursor: 'pointer',
-                        opacity: isFiltered ? 0.5 : 1,
-                      }}
-                      onClick={() => handleHuntEvidenceClick(evidence.id)}
-                    >
-                      <Checkbox
-                        checked={isIncluded}
-                        sx={{
-                          color: isFiltered ? 'text.disabled' : 'text.secondary',
-                          '&.Mui-checked': {
-                            color: isFiltered ? 'text.disabled' : 'success.main',
-                          },
-                        }}
-                      />
-                      <Box sx={{ 
-                        flexGrow: 1,
-                        display: 'flex',
-                        alignItems: 'center',
-                        color: isFiltered ? 'text.disabled' :
-                               isExcluded ? 'error.main' :
-                               isIncluded ? 'success.main' :
-                               'text.primary'
-                      }}>
-                        {evidence.label}
-                        {isHuntEvidenceInSearchResults(evidence.id) && (
-                          <FilterAltIcon 
-                            sx={{ 
-                              ml: 1, 
-                              fontSize: '1rem',
-                              color: 'primary.main',
-                              opacity: 0.7
-                            }} 
-                          />
-                        )}
-                        {matchesSearch && (
-                          <SearchIcon 
-                            sx={{ 
-                              ml: 1, 
-                              fontSize: '1rem',
-                              color: 'primary.main',
-                              opacity: 0.7
-                            }} 
-                          />
-                        )}
-                        {evidence.id === 'screams_parabolic' && (
-                          <IconButton
-                            onClick={playBansheeScream}
-                            size="small"
-                            sx={{
-                              ml: 1,
-                              color: isFiltered ? 'text.disabled' : 'white',
-                              '&:hover': {
-                                color: isFiltered ? 'text.disabled' : 'primary.main'
-                              }
-                            }}
-                          >
-                            <VolumeUpIcon fontSize="small" />
-                          </IconButton>
-                        )}
-                      </Box>
+            <Box sx={{ display: 'flex', alignItems: 'center', mb: 1, cursor: 'pointer' }} onClick={() => setHuntEvidenceExpanded(!huntEvidenceExpanded)}>
+              <Typography variant="h6" sx={{ flexGrow: 1 }}>
+                Unique Evidence
+              </Typography>
+              <IconButton>
+                {huntEvidenceExpanded ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+              </IconButton>
+            </Box>
+            <Collapse in={huntEvidenceExpanded}>
+              <TextField
+                fullWidth
+                variant="outlined"
+                placeholder="Search unique evidence..."
+                value={huntEvidenceSearch}
+                onChange={(e) => setHuntEvidenceSearch(e.target.value)}
+                sx={{ mb: 2 }}
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <SearchIcon />
+                    </InputAdornment>
+                  ),
+                  endAdornment: huntEvidenceSearch && (
+                    <InputAdornment position="end">
                       <IconButton
+                        onClick={() => setHuntEvidenceSearch('')}
+                        edge="end"
                         size="small"
-                        onClick={(e) => handleHuntEvidenceExclude(evidence.id, e)}
+                      >
+                        <CloseIcon />
+                      </IconButton>
+                    </InputAdornment>
+                  )
+                }}
+              />
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                {huntEvidenceList
+                  .slice()
+                  .sort((a, b) => {
+                    // First sort by filtered status
+                    const aFiltered = a.ghost.split(', ').every(ghostName => isGhostFilteredOut(ghostName));
+                    const bFiltered = b.ghost.split(', ').every(ghostName => isGhostFilteredOut(ghostName));
+                    if (aFiltered !== bFiltered) {
+                      return aFiltered ? 1 : -1;
+                    }
+
+                    // Then sort by search match
+                    const aMatchesSearch = huntEvidenceSearch && 
+                      a.label.toLowerCase().includes(huntEvidenceSearch.toLowerCase());
+                    const bMatchesSearch = huntEvidenceSearch && 
+                      b.label.toLowerCase().includes(huntEvidenceSearch.toLowerCase());
+                    if (aMatchesSearch !== bMatchesSearch) {
+                      return aMatchesSearch ? -1 : 1;
+                    }
+
+                    // Then sort by ghost match if there's a search query
+                    if (searchQuery) {
+                      const aGhostMatches = a.ghost.split(', ').some(ghostName => 
+                        ghostName.toLowerCase().includes(searchQuery.toLowerCase().trim())
+                      );
+                      const bGhostMatches = b.ghost.split(', ').some(ghostName => 
+                        ghostName.toLowerCase().includes(searchQuery.toLowerCase().trim())
+                      );
+                      if (aGhostMatches !== bGhostMatches) {
+                        return aGhostMatches ? -1 : 1;
+                      }
+                    }
+
+                    // Finally sort by original order
+                    return 0;
+                  })
+                  .map((evidence) => {
+                    const isFiltered = evidence.ghost.split(', ').every(ghostName => isGhostFilteredOut(ghostName));
+                    const matchesSearch = huntEvidenceSearch && 
+                      evidence.label.toLowerCase().includes(huntEvidenceSearch.toLowerCase());
+                    const isExcluded = selectedHuntEvidence[evidence.id] === false;
+                    const isIncluded = selectedHuntEvidence[evidence.id] === true;
+                    return (
+                      <Box
+                        key={evidence.id}
                         sx={{
-                          color: isExcluded ? 'error.main' : 'text.secondary',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 1,
+                          p: 0.5,
+                          borderRadius: 1,
+                          bgcolor: isExcluded ? 'error.dark' : isIncluded ? 'success.dark' : 'transparent',
                           '&:hover': {
-                            color: 'error.main',
+                            bgcolor: isExcluded ? 'error.dark' : isIncluded ? 'success.dark' : 'action.hover',
                           },
+                          cursor: 'pointer',
                           opacity: isFiltered ? 0.5 : 1,
                         }}
+                        onClick={() => handleHuntEvidenceClick(evidence.id)}
                       >
-                        <CancelIcon fontSize="small" />
-                      </IconButton>
-                    </Box>
-                  );
-                })}
-            </Box>
+                        <Checkbox
+                          checked={isIncluded}
+                          sx={{
+                            color: isFiltered ? 'text.disabled' : 'text.secondary',
+                            '&.Mui-checked': {
+                              color: isFiltered ? 'text.disabled' : 'success.main',
+                            },
+                          }}
+                        />
+                        <Box sx={{ 
+                          flexGrow: 1,
+                          display: 'flex',
+                          alignItems: 'center',
+                          color: isFiltered ? 'text.disabled' :
+                                 isExcluded ? 'error.main' :
+                                 isIncluded ? 'success.main' :
+                                 'text.primary'
+                        }}>
+                          {evidence.label}
+                          {isHuntEvidenceInSearchResults(evidence.id) && (
+                            <FilterAltIcon 
+                              sx={{ 
+                                ml: 1, 
+                                fontSize: '1rem',
+                                color: 'primary.main',
+                                opacity: 0.7
+                              }} 
+                            />
+                          )}
+                          {matchesSearch && (
+                            <SearchIcon 
+                              sx={{ 
+                                ml: 1, 
+                                fontSize: '1rem',
+                                color: 'primary.main',
+                                opacity: 0.7
+                              }} 
+                            />
+                          )}
+                          {evidence.id === 'screams_parabolic' && (
+                            <IconButton
+                              onClick={playBansheeScream}
+                              size="small"
+                              sx={{
+                                ml: 1,
+                                color: isFiltered ? 'text.disabled' : 'white',
+                                '&:hover': {
+                                  color: isFiltered ? 'text.disabled' : 'primary.main'
+                                }
+                              }}
+                            >
+                              <VolumeUpIcon fontSize="small" />
+                            </IconButton>
+                          )}
+                        </Box>
+                        <IconButton
+                          size="small"
+                          onClick={(e) => handleHuntEvidenceExclude(evidence.id, e)}
+                          sx={{
+                            color: isExcluded ? 'error.main' : 'text.secondary',
+                            '&:hover': {
+                              color: 'error.main',
+                            },
+                            opacity: isFiltered ? 0.5 : 1,
+                          }}
+                        >
+                          <CancelIcon fontSize="small" />
+                        </IconButton>
+                      </Box>
+                    );
+                  })}
+              </Box>
+            </Collapse>
           </Box>
         ) : (
           <Box sx={{ p: 2 }}>
-            <Typography variant="h6" gutterBottom>
-              Timers
-            </Typography>
             <Box sx={{ mb: 3 }}>
               <Typography variant="subtitle1" gutterBottom>
                 Smudge Timer

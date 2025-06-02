@@ -78,6 +78,7 @@ const GhostCards = () => {
     'interacts_main_door': ['Yurei'],
     'never_changes_rooms': ['Goryo', 'Banshee'],
     'hunts_after_candles': ['Onryo'],
+    'cant_light_fire': ['Onryo'],
     'no_hunt_in_room': ['Shade'],
     'speed_with_breaker': ['Jinn'],
     'never_turns_off_breaker': ['Jinn'],
@@ -203,7 +204,7 @@ const GhostCards = () => {
     return (
       <Box sx={{ p: 2, textAlign: 'center' }}>
         <Typography variant="h6" color="text.secondary">
-          No ghosts match the selected evidence and speed. Is it a Mimic?
+          No ghosts match the selected filters. Was the ghost manually removed? *MAY BE MIMIC UNTIL FILTER LOGIC IS IMPROVED TO SUPPORT IT*
         </Typography>
       </Box>
     );
