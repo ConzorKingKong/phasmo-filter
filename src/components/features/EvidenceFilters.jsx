@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect, useCallback } from 'react';
 import { Box, Typography, Checkbox, FormControlLabel, Divider, TextField, InputAdornment, IconButton, Tabs, Tab, Button, Collapse } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import VolumeUpIcon from '@mui/icons-material/VolumeUp';
@@ -33,13 +33,165 @@ const EvidenceFilters = () => {
   const [isHuntCooldownPlaying, setIsHuntCooldownPlaying] = useState(false);
   const [huntCooldownTimeLeft, setHuntCooldownTimeLeft] = useState(25); // 25 seconds
   const [huntEvidenceSearch, setHuntEvidenceSearch] = useState('');
-  const timerRef = useRef(null);
-  const huntCooldownTimerRef = useRef(null);
-  const startSoundRef = useRef(new Audio('/sounds/start.mp3'));
-  const stopSoundRef = useRef(new Audio('/sounds/stop.mp3'));
   const [evidenceExpanded, setEvidenceExpanded] = useState(false);
   const [speedExpanded, setSpeedExpanded] = useState(true);
   const [huntEvidenceExpanded, setHuntEvidenceExpanded] = useState(true);
+
+  // Timer refs
+  const timerRef = useRef(null);
+  const huntCooldownTimerRef = useRef(null);
+  const startTimeRef = useRef(null);
+  const huntCooldownStartTimeRef = useRef(null);
+  const animationFrameRef = useRef(null);
+  const huntCooldownAnimationFrameRef = useRef(null);
+  const startSoundRef = useRef(new Audio('/sounds/start.mp3'));
+  const stopSoundRef = useRef(new Audio('/sounds/stop.mp3'));
+
+  // Handle visibility change
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        // Recalculate time left for smudge timer
+        if (isPlaying && startTimeRef.current) {
+          const elapsed = Math.floor((Date.now() - startTimeRef.current) / 1000);
+          const newTimeLeft = Math.max(0, 180 - elapsed);
+          setTimeLeft(newTimeLeft);
+          if (newTimeLeft === 0) {
+            setIsPlaying(false);
+            startTimeRef.current = null;
+          }
+        }
+
+        // Recalculate time left for hunt cooldown timer
+        if (isHuntCooldownPlaying && huntCooldownStartTimeRef.current) {
+          const elapsed = Math.floor((Date.now() - huntCooldownStartTimeRef.current) / 1000);
+          const newTimeLeft = Math.max(0, 25 - elapsed);
+          setHuntCooldownTimeLeft(newTimeLeft);
+          if (newTimeLeft === 0) {
+            setIsHuntCooldownPlaying(false);
+            huntCooldownStartTimeRef.current = null;
+          }
+        }
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [isPlaying, isHuntCooldownPlaying]);
+
+  // Animation frame update function for smudge timer
+  const updateTimer = useCallback(() => {
+    if (!isPlaying || !startTimeRef.current) return;
+
+    const elapsed = Math.floor((Date.now() - startTimeRef.current) / 1000);
+    const newTimeLeft = Math.max(0, 180 - elapsed);
+    setTimeLeft(newTimeLeft);
+
+    if (newTimeLeft === 0) {
+      setIsPlaying(false);
+      startTimeRef.current = null;
+      return;
+    }
+
+    animationFrameRef.current = requestAnimationFrame(updateTimer);
+  }, [isPlaying]);
+
+  // Animation frame update function for hunt cooldown timer
+  const updateHuntCooldownTimer = useCallback(() => {
+    if (!isHuntCooldownPlaying || !huntCooldownStartTimeRef.current) return;
+
+    const elapsed = Math.floor((Date.now() - huntCooldownStartTimeRef.current) / 1000);
+    const newTimeLeft = Math.max(0, 25 - elapsed);
+    setHuntCooldownTimeLeft(newTimeLeft);
+
+    if (newTimeLeft === 0) {
+      setIsHuntCooldownPlaying(false);
+      huntCooldownStartTimeRef.current = null;
+      return;
+    }
+
+    huntCooldownAnimationFrameRef.current = requestAnimationFrame(updateHuntCooldownTimer);
+  }, [isHuntCooldownPlaying]);
+
+  // Start/stop smudge timer
+  const toggleTimer = () => {
+    if (isPlaying) {
+      clearInterval(timerRef.current);
+      stopSoundRef.current.currentTime = 0;
+      stopSoundRef.current.play();
+      startTimeRef.current = null;
+    } else {
+      startSoundRef.current.currentTime = 0;
+      startSoundRef.current.play();
+      startTimeRef.current = Date.now();
+      timerRef.current = setInterval(() => {
+        const elapsed = Math.floor((Date.now() - startTimeRef.current) / 1000);
+        const newTimeLeft = Math.max(0, 180 - elapsed);
+        setTimeLeft(newTimeLeft);
+        if (newTimeLeft === 0) {
+          clearInterval(timerRef.current);
+          setIsPlaying(false);
+          startTimeRef.current = null;
+        }
+      }, 100);
+    }
+    setIsPlaying(!isPlaying);
+  };
+
+  // Reset smudge timer
+  const resetTimer = () => {
+    clearInterval(timerRef.current);
+    setIsPlaying(false);
+    setTimeLeft(180);
+    startTimeRef.current = null;
+    stopSoundRef.current.currentTime = 0;
+    stopSoundRef.current.play();
+  };
+
+  // Start/stop hunt cooldown timer
+  const toggleHuntCooldownTimer = () => {
+    if (isHuntCooldownPlaying) {
+      clearInterval(huntCooldownTimerRef.current);
+      stopSoundRef.current.currentTime = 0;
+      stopSoundRef.current.play();
+      huntCooldownStartTimeRef.current = null;
+    } else {
+      startSoundRef.current.currentTime = 0;
+      startSoundRef.current.play();
+      huntCooldownStartTimeRef.current = Date.now();
+      huntCooldownTimerRef.current = setInterval(() => {
+        const elapsed = Math.floor((Date.now() - huntCooldownStartTimeRef.current) / 1000);
+        const newTimeLeft = Math.max(0, 25 - elapsed);
+        setHuntCooldownTimeLeft(newTimeLeft);
+        if (newTimeLeft === 0) {
+          clearInterval(huntCooldownTimerRef.current);
+          setIsHuntCooldownPlaying(false);
+          huntCooldownStartTimeRef.current = null;
+        }
+      }, 100);
+    }
+    setIsHuntCooldownPlaying(!isHuntCooldownPlaying);
+  };
+
+  // Reset hunt cooldown timer
+  const resetHuntCooldownTimer = () => {
+    clearInterval(huntCooldownTimerRef.current);
+    setIsHuntCooldownPlaying(false);
+    setHuntCooldownTimeLeft(25);
+    huntCooldownStartTimeRef.current = null;
+    stopSoundRef.current.currentTime = 0;
+    stopSoundRef.current.play();
+  };
+
+  // Cleanup animation frames on unmount
+  useEffect(() => {
+    return () => {
+      clearInterval(timerRef.current);
+      clearInterval(huntCooldownTimerRef.current);
+    };
+  }, []);
 
   // Create a map of ghost names to their original indices
   const originalOrder = React.useMemo(() => {
@@ -57,66 +209,6 @@ const EvidenceFilters = () => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-  };
-
-  const toggleTimer = () => {
-    if (isPlaying) {
-      clearInterval(timerRef.current);
-      stopSoundRef.current.currentTime = 0;
-      stopSoundRef.current.play();
-    } else {
-      startSoundRef.current.currentTime = 0;
-      startSoundRef.current.play();
-      timerRef.current = setInterval(() => {
-        setTimeLeft(prev => {
-          if (prev <= 1) {
-            clearInterval(timerRef.current);
-            setIsPlaying(false);
-            return 180;
-          }
-          return prev - 1;
-        });
-      }, 1000);
-    }
-    setIsPlaying(!isPlaying);
-  };
-
-  const resetTimer = () => {
-    clearInterval(timerRef.current);
-    setIsPlaying(false);
-    setTimeLeft(180);
-    stopSoundRef.current.currentTime = 0;
-    stopSoundRef.current.play();
-  };
-
-  const toggleHuntCooldownTimer = () => {
-    if (isHuntCooldownPlaying) {
-      clearInterval(huntCooldownTimerRef.current);
-      stopSoundRef.current.currentTime = 0;
-      stopSoundRef.current.play();
-    } else {
-      startSoundRef.current.currentTime = 0;
-      startSoundRef.current.play();
-      huntCooldownTimerRef.current = setInterval(() => {
-        setHuntCooldownTimeLeft(prev => {
-          if (prev <= 1) {
-            clearInterval(huntCooldownTimerRef.current);
-            setIsHuntCooldownPlaying(false);
-            return 25;
-          }
-          return prev - 1;
-        });
-      }, 1000);
-    }
-    setIsHuntCooldownPlaying(!isHuntCooldownPlaying);
-  };
-
-  const resetHuntCooldownTimer = () => {
-    clearInterval(huntCooldownTimerRef.current);
-    setIsHuntCooldownPlaying(false);
-    setHuntCooldownTimeLeft(25);
-    stopSoundRef.current.currentTime = 0;
-    stopSoundRef.current.play();
   };
 
   const audioRef = useRef(new Audio('/sounds/banshee_scream.mp3'));
@@ -391,10 +483,10 @@ const EvidenceFilters = () => {
 
       <Box sx={{ flexGrow: 1, overflow: 'auto' }}>
         {activeTab === 0 ? (
-    <Box sx={{ p: 2 }}>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+          <Box sx={{ p: 2 }}>
+            <Box sx={{ mb: 2 }}>
               <Typography variant="h6" gutterBottom>
-                Evidence Filters
+                Filters
               </Typography>
               <Button
                 variant="outlined"
@@ -434,32 +526,6 @@ const EvidenceFilters = () => {
                 Reset All
               </Button>
             </Box>
-            <TextField
-              fullWidth
-              variant="outlined"
-              placeholder="Search ghosts..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              sx={{ mb: 2 }}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <SearchIcon />
-                  </InputAdornment>
-                ),
-                endAdornment: searchQuery && (
-                  <InputAdornment position="end">
-                    <IconButton
-                      onClick={() => setSearchQuery('')}
-                      edge="end"
-                      size="small"
-                    >
-                      <CloseIcon />
-                    </IconButton>
-                  </InputAdornment>
-                )
-              }}
-            />
 
             <Box sx={{ display: 'flex', alignItems: 'center', mb: 1, cursor: 'pointer' }} onClick={() => setEvidenceExpanded(!evidenceExpanded)}>
               <Typography variant="h6" sx={{ flexGrow: 1 }}>
