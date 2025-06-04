@@ -1,5 +1,5 @@
 import React, { useRef, useState } from 'react';
-import { Box, Card, CardContent, Typography, Chip, Grid, Divider, IconButton } from '@mui/material';
+import { Box, Card, CardContent, Typography, Chip, Grid, Divider, IconButton, TextField, InputAdornment } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import CloseIcon from '@mui/icons-material/Close';
 import VolumeUpIcon from '@mui/icons-material/VolumeUp';
@@ -14,6 +14,7 @@ const GhostCards = () => {
     selectedHuntEvidence,
     setSelectedHuntEvidence,
     searchQuery,
+    setSearchQuery,
     showDescriptions,
     excludedGhosts,
     setExcludedGhosts
@@ -211,157 +212,185 @@ const GhostCards = () => {
   }
 
   return (
-    <Grid 
-      container 
-      spacing={2} 
-      sx={{ 
-        display: 'grid',
-        gridTemplateColumns: {
-          xs: '1fr',
-          sm: 'repeat(3, 1fr)'
-        },
-        gap: 2
-      }}
-    >
-      {filteredGhosts.map((ghost) => {
-        const isSearchMatch = searchQuery && ghost.ghost.toLowerCase().includes(searchQuery.toLowerCase());
-        const matchesFilters = checkFilters(ghost);
-        
-        return (
-          <Grid item key={ghost.ghost}>
-            <Card 
-              sx={{ 
-                height: '100%',
-                position: 'relative',
-                border: isSearchMatch ? '2px solid white' : 'none',
-                boxShadow: isSearchMatch ? '0 0 10px rgba(255, 255, 255, 0.5)' : 'none'
-              }}
-            >
+    <Box sx={{ p: 2 }}>
+      <TextField
+        fullWidth
+        variant="outlined"
+        placeholder="Search ghosts..."
+        value={searchQuery}
+        onChange={(e) => setSearchQuery(e.target.value)}
+        sx={{ mb: 2 }}
+        InputProps={{
+          startAdornment: (
+            <InputAdornment position="start">
+              <SearchIcon />
+            </InputAdornment>
+          ),
+          endAdornment: searchQuery && (
+            <InputAdornment position="end">
               <IconButton
-                onClick={() => handleTrashClick(ghost)}
-                sx={{
-                  position: 'absolute',
-                  top: 8,
-                  right: 8,
-                  color: 'error.main',
-                  '&:hover': {
-                    color: 'error.dark'
-                  }
+                onClick={() => setSearchQuery('')}
+                edge="end"
+                size="small"
+              >
+                <CloseIcon />
+              </IconButton>
+            </InputAdornment>
+          )
+        }}
+      />
+      <Grid 
+        container 
+        spacing={2} 
+        sx={{ 
+          display: 'grid',
+          gridTemplateColumns: {
+            xs: '1fr',
+            sm: 'repeat(3, 1fr)'
+          },
+          gap: 2
+        }}
+      >
+        {filteredGhosts.map((ghost) => {
+          const isSearchMatch = searchQuery && ghost.ghost.toLowerCase().includes(searchQuery.toLowerCase());
+          const matchesFilters = checkFilters(ghost);
+          
+          return (
+            <Grid item key={ghost.ghost}>
+              <Card 
+                sx={{ 
+                  height: '100%',
+                  position: 'relative',
+                  border: isSearchMatch ? '2px solid white' : 'none',
+                  boxShadow: isSearchMatch ? '0 0 10px rgba(255, 255, 255, 0.5)' : 'none'
                 }}
               >
-                <DeleteIcon />
-              </IconButton>
-              {isSearchMatch && (
-                <SearchIcon 
-                  sx={{ 
+                <IconButton
+                  onClick={() => handleTrashClick(ghost)}
+                  sx={{
                     position: 'absolute',
                     top: 8,
-                    right: 48,
-                    color: 'white',
-                    opacity: 0.7
-                  }} 
-                />
-              )}
-              {isSearchMatch && !matchesFilters && (
-                <CloseIcon 
-                  sx={{ 
-                    position: 'absolute',
-                    bottom: 8,
                     right: 8,
                     color: 'error.main',
-                    opacity: 0.7
-                  }} 
-                />
-              )}
-              <CardContent>
-                <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                  <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-                    {ghost.ghost}
-                    {ghost.ghost === 'Banshee' && (
-                      <IconButton 
-                        onClick={playBansheeScream}
-                        size="small"
-                        sx={{ 
-                          color: 'white',
-                          '&:hover': {
-                            color: 'primary.main'
-                          }
-                        }}
-                      >
-                        <VolumeUpIcon />
-                      </IconButton>
-                    )}
-                  </Typography>
-                </Box>
-                {showDescriptions && (
-                  <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-                    {ghost.description}
-                  </Typography>
+                    '&:hover': {
+                      color: 'error.dark'
+                    }
+                  }}
+                >
+                  <DeleteIcon />
+                </IconButton>
+                {isSearchMatch && (
+                  <SearchIcon 
+                    sx={{ 
+                      position: 'absolute',
+                      top: 8,
+                      right: 48,
+                      color: 'white',
+                      opacity: 0.7
+                    }} 
+                  />
                 )}
-                <Box sx={{ mb: 2 }}>
-                  <Typography variant="subtitle2" gutterBottom>
-                    Evidence
-                  </Typography>
-                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-                    {ghost.evidence.map((evidence) => (
-                      <Chip
-                        key={evidence}
-                        label={getEvidenceLabel(evidence)}
-                        size="small"
-                      />
-                    ))}
+                {isSearchMatch && !matchesFilters && (
+                  <CloseIcon 
+                    sx={{ 
+                      position: 'absolute',
+                      bottom: 8,
+                      right: 8,
+                      color: 'error.main',
+                      opacity: 0.7
+                    }} 
+                  />
+                )}
+                <CardContent>
+                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                    <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
+                      {ghost.ghost}
+                      {ghost.ghost === 'Banshee' && (
+                        <IconButton 
+                          onClick={playBansheeScream}
+                          size="small"
+                          sx={{ 
+                            color: 'white',
+                            '&:hover': {
+                              color: 'primary.main'
+                            }
+                          }}
+                        >
+                          <VolumeUpIcon />
+                        </IconButton>
+                      )}
+                    </Typography>
                   </Box>
-                </Box>
-                <Divider sx={{ my: 1 }} />
-                <Box sx={{ mb: 1 }}>
-                  <Typography variant="subtitle2">Sanity Hunt Threshold</Typography>
-                  <Typography variant="body2">
-                    {ghost.hunt_sanity_low === ghost.hunt_sanity_high
-                      ? ghost.hunt_sanity || '-'
-                      : `${ghost.hunt_sanity_low || '-'} / ${ghost.hunt_sanity || '-'} / ${ghost.hunt_sanity_high || '-'}`}
-                  </Typography>
-                </Box>
-                <Box sx={{ mb: 1 }}>
-                  <Typography variant="subtitle2">Movement Speed</Typography>
-                  <Typography variant="body2">
-                    {ghost.min_speed && ghost.max_speed && ghost.min_speed !== ghost.max_speed
-                      ? `${ghost.min_speed} m/s - ${ghost.max_speed} m/s`
-                      : ghost.min_speed
-                        ? `${ghost.min_speed} m/s`
-                        : '-'}
-                    {ghost.alt_speed && ` (Alt: ${ghost.alt_speed} m/s)`}
-                    {ghost.has_los && ' (Speeds up when line of sight)'}
-                  </Typography>
-                </Box>
-                <Divider sx={{ my: 1 }} />
-                <Box sx={{ mb: 1 }}>
-                  <Typography variant="subtitle2">Extra Info</Typography>
-                  {ghost.wiki && (
-                    <>
-                      {ghost.wiki.tells?.filter(t => t.include_on_card).map((t, i) => (
-                        <Typography key={i} variant="body2" sx={{ mb: 0.5 }}>
-                          • {t.data}
-                        </Typography>
-                      ))}
-                      {ghost.wiki.behaviors?.filter(t => t.include_on_card).map((t, i) => (
-                        <Typography key={`b${i}`} variant="body2" sx={{ mb: 0.5 }}>
-                          • {t.data}
-                        </Typography>
-                      ))}
-                      {ghost.wiki.abilities?.filter(t => t.include_on_card).map((t, i) => (
-                        <Typography key={`a${i}`} variant="body2" sx={{ mb: 0.5 }}>
-                          • {t.data}
-                        </Typography>
-                      ))}
-                    </>
+                  {showDescriptions && (
+                    <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                      {ghost.description}
+                    </Typography>
                   )}
-                </Box>
-              </CardContent>
-            </Card>
-          </Grid>
-        );
-      })}
-    </Grid>
+                  <Box sx={{ mb: 2 }}>
+                    <Typography variant="subtitle2" gutterBottom>
+                      Evidence
+                    </Typography>
+                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                      {ghost.evidence.map((evidence) => (
+                        <Chip
+                          key={evidence}
+                          label={getEvidenceLabel(evidence)}
+                          size="small"
+                        />
+                      ))}
+                    </Box>
+                  </Box>
+                  <Divider sx={{ my: 1 }} />
+                  <Box sx={{ mb: 1 }}>
+                    <Typography variant="subtitle2">Sanity Hunt Threshold</Typography>
+                    <Typography variant="body2">
+                      {ghost.hunt_sanity_low === ghost.hunt_sanity_high
+                        ? ghost.hunt_sanity || '-'
+                        : `${ghost.hunt_sanity_low || '-'} / ${ghost.hunt_sanity || '-'} / ${ghost.hunt_sanity_high || '-'}`}
+                    </Typography>
+                  </Box>
+                  <Box sx={{ mb: 1 }}>
+                    <Typography variant="subtitle2">Movement Speed</Typography>
+                    <Typography variant="body2">
+                      {ghost.min_speed && ghost.max_speed && ghost.min_speed !== ghost.max_speed
+                        ? `${ghost.min_speed} m/s - ${ghost.max_speed} m/s`
+                        : ghost.min_speed
+                          ? `${ghost.min_speed} m/s`
+                          : '-'}
+                      {ghost.alt_speed && ` (Alt: ${ghost.alt_speed} m/s)`}
+                      {ghost.has_los && ' (Speeds up when line of sight)'}
+                    </Typography>
+                  </Box>
+                  <Divider sx={{ my: 1 }} />
+                  <Box sx={{ mb: 1 }}>
+                    <Typography variant="subtitle2">Extra Info</Typography>
+                    {ghost.wiki && (
+                      <>
+                        {ghost.wiki.tells?.filter(t => t.include_on_card).map((t, i) => (
+                          <Typography key={i} variant="body2" sx={{ mb: 0.5 }}>
+                            • {t.data}
+                          </Typography>
+                        ))}
+                        {ghost.wiki.behaviors?.filter(t => t.include_on_card).map((t, i) => (
+                          <Typography key={`b${i}`} variant="body2" sx={{ mb: 0.5 }}>
+                            • {t.data}
+                          </Typography>
+                        ))}
+                        {ghost.wiki.abilities?.filter(t => t.include_on_card).map((t, i) => (
+                          <Typography key={`a${i}`} variant="body2" sx={{ mb: 0.5 }}>
+                            • {t.data}
+                          </Typography>
+                        ))}
+                      </>
+                    )}
+                  </Box>
+                </CardContent>
+              </Card>
+            </Grid>
+          );
+        })}
+      </Grid>
+    </Box>
   );
 };
 
