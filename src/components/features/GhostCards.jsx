@@ -360,7 +360,7 @@ const GhostCards = () => {
                 boxShadow: isSearchMatch ? '0 0 10px rgba(255, 255, 255, 0.5)' : 'none'
               }}
             >
-                {!excludedGhosts.has(ghost.ghost) && (
+                {!excludedGhosts.has(ghost.ghost) && matchesFilters ? (
                   <IconButton
                     onClick={() => handleTrashClick(ghost)}
                     sx={{ 
@@ -375,6 +375,16 @@ const GhostCards = () => {
                   >
                     <DeleteIcon />
                   </IconButton>
+                ) : isSearchMatch && !matchesFilters && (
+                  <CloseIcon 
+                    sx={{ 
+                      position: 'absolute',
+                      top: 8,
+                      right: 8,
+                      color: 'error.main',
+                      opacity: 0.7
+                    }} 
+                  />
                 )}
                 {isSearchMatch && (
                   <SearchIcon 
@@ -383,17 +393,6 @@ const GhostCards = () => {
                       top: 8,
                       right: 56,
                       color: 'white',
-                      opacity: 0.7
-                    }} 
-                  />
-                )}
-                {isSearchMatch && !matchesFilters && (
-                  <CloseIcon 
-                    sx={{ 
-                      position: 'absolute',
-                      top: 8,
-                      right: 28,
-                      color: 'error.main',
                       opacity: 0.7
                     }} 
                   />
