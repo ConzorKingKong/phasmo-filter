@@ -427,13 +427,22 @@ const GhostCards = () => {
                     Evidence
               </Typography>
                   <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-                {ghost.evidence.map((evidence) => (
-                  <Chip
-                    key={evidence}
-                    label={getEvidenceLabel(evidence)}
-                    size="small"
-                  />
-                ))}
+                    {ghost.evidence.map((evidence) => (
+                      <Chip
+                        key={evidence}
+                        label={getEvidenceLabel(evidence)}
+                        size="small"
+                        sx={{
+                          ...(ghost.nightmare_evidence?.includes(evidence) && {
+                            backgroundColor: 'primary.main',
+                            color: 'white',
+                            '&:hover': {
+                              backgroundColor: 'primary.dark'
+                            }
+                          })
+                        }}
+                      />
+                    ))}
                   </Box>
                 </Box>
                 <Divider sx={{ my: 1 }} />
