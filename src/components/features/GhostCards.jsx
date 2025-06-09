@@ -291,7 +291,12 @@ const GhostCards = () => {
 
   return (
     <Box sx={{ p: 2 }}>
-      <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
+      <Box sx={{ 
+        display: 'flex', 
+        flexDirection: { xs: 'column', sm: 'row' },
+        gap: 2, 
+        mb: 2 
+      }}>
         <TextField
           fullWidth
           variant="outlined"
@@ -317,7 +322,10 @@ const GhostCards = () => {
             )
           }}
         />
-        <FormControl sx={{ minWidth: 200 }}>
+        <FormControl sx={{ 
+          minWidth: { xs: '100%', sm: 200 },
+          width: { xs: '100%', sm: 'auto' }
+        }}>
           <InputLabel>Sort By</InputLabel>
           <Select
             value={sortOrder}
