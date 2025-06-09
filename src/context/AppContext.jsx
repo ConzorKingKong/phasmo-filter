@@ -11,6 +11,7 @@ export const AppProvider = ({ children }) => {
   const [selectedHuntEvidence, setSelectedHuntEvidence] = useState({})
   const [searchQuery, setSearchQuery] = useState('')
   const [excludedGhosts, setExcludedGhosts] = useState(new Set())
+  const [sortOrder, setSortOrder] = useState('default')
   const [settings, setSettings] = useState({
     darkMode: true,
     fontSize: 'medium'
@@ -21,7 +22,7 @@ export const AppProvider = ({ children }) => {
   useEffect(() => {
     const fetchGhosts = async () => {
       try {
-        const response = await fetch('/data/ghosts.json')
+        const response = await fetch('/data/ghosts-v1-000-015.json')
         if (!response.ok) {
           throw new Error('Failed to fetch ghost data')
         }
@@ -57,6 +58,8 @@ export const AppProvider = ({ children }) => {
     setSearchQuery,
     excludedGhosts,
     setExcludedGhosts,
+    sortOrder,
+    setSortOrder,
     settings,
     setSettings,
     updateSettings,

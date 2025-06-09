@@ -1,5 +1,5 @@
 import React, { useRef, useState } from 'react';
-import { Box, Card, CardContent, Typography, Chip, Grid, Divider, IconButton, TextField, InputAdornment } from '@mui/material';
+import { Box, Card, CardContent, Typography, Chip, Grid, Divider, IconButton, TextField, InputAdornment, Select, MenuItem, FormControl, InputLabel } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import CloseIcon from '@mui/icons-material/Close';
 import VolumeUpIcon from '@mui/icons-material/VolumeUp';
@@ -17,7 +17,9 @@ const GhostCards = () => {
     setSearchQuery,
     showDescriptions,
     excludedGhosts,
-    setExcludedGhosts
+    setExcludedGhosts,
+    sortOrder,
+    setSortOrder
   } = useApp();
 
   const audioRef = useRef(new Audio('/sounds/banshee_scream.mp3'));
@@ -177,7 +179,82 @@ const GhostCards = () => {
     });
   };
 
-  const filteredGhosts = ghosts.filter(ghost => {
+  const getGhostSpeed = (ghost) => {
+    const speeds = [];
+    if (ghost.min_speed) speeds.push(parseFloat(ghost.min_speed));
+    if (ghost.max_speed) speeds.push(parseFloat(ghost.max_speed));
+    if (ghost.alt_speed) speeds.push(parseFloat(ghost.alt_speed));
+    return speeds;
+  };
+
+  const getGhostSanity = (ghost, sortType) => {
+    // Convert sanity values to numbers, removing the % sign
+    const sanity = ghost.hunt_sanity ? parseFloat(ghost.hunt_sanity) : null;
+    const sanityLow = ghost.hunt_sanity_low ? parseFloat(ghost.hunt_sanity_low) : null;
+    const sanityHigh = ghost.hunt_sanity_high ? parseFloat(ghost.hunt_sanity_high) : null;
+
+    // For highest sanity sorting, use the highest possible value
+    if (sortType === 'highest') {
+      if (sanityHigh !== null) {
+        return sanityHigh;
+      }
+      if (sanity !== null) {
+        return sanity;
+      }
+      if (sanityLow !== null) {
+        return sanityLow;
+      }
+    }
+    // For lowest sanity sorting, use the lowest possible value
+    else {
+      if (sanityLow !== null) {
+        return sanityLow;
+      }
+      if (sanity !== null) {
+        return sanity;
+      }
+      if (sanityHigh !== null) {
+        return sanityHigh;
+      }
+    }
+    // Default to 0 if no sanity value is found
+    return 0;
+  };
+
+  const sortGhosts = (ghosts) => {
+    switch (sortOrder) {
+      case 'default':
+        return ghosts;
+      case 'fastest':
+        return [...ghosts].sort((a, b) => {
+          const aSpeeds = getGhostSpeed(a);
+          const bSpeeds = getGhostSpeed(b);
+          const aMax = Math.max(...aSpeeds);
+          const bMax = Math.max(...bSpeeds);
+          return bMax - aMax;
+        });
+      case 'slowest':
+        return [...ghosts].sort((a, b) => {
+          const aSpeeds = getGhostSpeed(a);
+          const bSpeeds = getGhostSpeed(b);
+          const aMin = Math.min(...aSpeeds);
+          const bMin = Math.min(...bSpeeds);
+          return aMin - bMin;
+        });
+      case 'sanity_highest':
+        return [...ghosts].sort((a, b) => getGhostSanity(b, 'highest') - getGhostSanity(a, 'highest'));
+      case 'sanity_lowest':
+        return [...ghosts].sort((a, b) => getGhostSanity(a, 'lowest') - getGhostSanity(b, 'lowest'));
+      case 'alphabetical':
+        return [...ghosts].sort((a, b) => a.ghost.localeCompare(b.ghost));
+      case 'alphabetical_reversed':
+        return [...ghosts].sort((a, b) => b.ghost.localeCompare(a.ghost));
+      default:
+        return ghosts;
+    }
+  };
+
+  const filteredGhosts = sortGhosts(ghosts.filter(ghost => {
     // Don't show excluded ghosts
     if (excludedGhosts.has(ghost.ghost)) {
       return false;
@@ -190,16 +267,7 @@ const GhostCards = () => {
 
     // Otherwise, only show ghosts that match all filters
     return checkFilters(ghost);
-  }).sort((a, b) => {
-    // If there's a search query, prioritize search matches
-    if (searchQuery) {
-      const aIsSearchMatch = a.ghost.toLowerCase().includes(searchQuery.toLowerCase());
-      const bIsSearchMatch = b.ghost.toLowerCase().includes(searchQuery.toLowerCase());
-      if (aIsSearchMatch && !bIsSearchMatch) return -1;
-      if (!aIsSearchMatch && bIsSearchMatch) return 1;
-    }
-    return 0;
-  });
+  }));
 
   if (filteredGhosts.length === 0) {
     return (
@@ -213,61 +281,78 @@ const GhostCards = () => {
 
   return (
     <Box sx={{ p: 2 }}>
-      <TextField
-        fullWidth
-        variant="outlined"
-        placeholder="Search ghosts..."
-        value={searchQuery}
-        onChange={(e) => setSearchQuery(e.target.value)}
-        sx={{ mb: 2 }}
-        InputProps={{
-          startAdornment: (
-            <InputAdornment position="start">
-              <SearchIcon />
-            </InputAdornment>
-          ),
-          endAdornment: searchQuery && (
-            <InputAdornment position="end">
-              <IconButton
-                onClick={() => setSearchQuery('')}
-                edge="end"
-                size="small"
-              >
-                <CloseIcon />
-              </IconButton>
-            </InputAdornment>
-          )
-        }}
-      />
-      <Grid 
-        container 
-        spacing={2} 
-        sx={{ 
-          display: 'grid',
-          gridTemplateColumns: {
-            xs: '1fr',
-            sm: 'repeat(3, 1fr)'
-          },
-          gap: 2
-        }}
-      >
-        {filteredGhosts.map((ghost) => {
-          const isSearchMatch = searchQuery && ghost.ghost.toLowerCase().includes(searchQuery.toLowerCase());
-          const matchesFilters = checkFilters(ghost);
-          
-          return (
-            <Grid item key={ghost.ghost}>
-              <Card 
-                sx={{ 
-                  height: '100%',
-                  position: 'relative',
-                  border: isSearchMatch ? '2px solid white' : 'none',
-                  boxShadow: isSearchMatch ? '0 0 10px rgba(255, 255, 255, 0.5)' : 'none'
-                }}
-              >
+      <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
+        <TextField
+          fullWidth
+          variant="outlined"
+          placeholder="Search ghosts..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          InputProps={{
+            startAdornment: (
+              <InputAdornment position="start">
+                <SearchIcon />
+              </InputAdornment>
+            ),
+            endAdornment: searchQuery && (
+              <InputAdornment position="end">
+                <IconButton
+                  onClick={() => setSearchQuery('')}
+                  edge="end"
+                  size="small"
+                >
+                  <CloseIcon />
+                </IconButton>
+              </InputAdornment>
+            )
+          }}
+        />
+        <FormControl sx={{ minWidth: 200 }}>
+          <InputLabel>Sort By</InputLabel>
+          <Select
+            value={sortOrder}
+            label="Sort By"
+            onChange={(e) => setSortOrder(e.target.value)}
+          >
+            <MenuItem value="default">Default</MenuItem>
+            <MenuItem value="fastest">Fastest → Slowest</MenuItem>
+            <MenuItem value="slowest">Slowest → Fastest</MenuItem>
+            <MenuItem value="sanity_highest">Sanity Highest → Lowest</MenuItem>
+            <MenuItem value="sanity_lowest">Sanity Lowest → Highest</MenuItem>
+            <MenuItem value="alphabetical">Alphabetical</MenuItem>
+            <MenuItem value="alphabetical_reversed">Alphabetical Reversed</MenuItem>
+          </Select>
+        </FormControl>
+      </Box>
+    <Grid 
+      container 
+      spacing={2} 
+      sx={{ 
+        display: 'grid',
+        gridTemplateColumns: {
+          xs: '1fr',
+          sm: 'repeat(3, 1fr)'
+        },
+        gap: 2
+      }}
+    >
+      {filteredGhosts.map((ghost) => {
+        const isSearchMatch = searchQuery && ghost.ghost.toLowerCase().includes(searchQuery.toLowerCase());
+        const matchesFilters = checkFilters(ghost);
+        
+        return (
+          <Grid item key={ghost.ghost}>
+            <Card 
+              sx={{ 
+                height: '100%',
+                position: 'relative',
+                border: isSearchMatch ? '2px solid white' : 'none',
+                boxShadow: isSearchMatch ? '0 0 10px rgba(255, 255, 255, 0.5)' : 'none'
+              }}
+            >
                 <IconButton
                   onClick={() => handleTrashClick(ghost)}
-                  sx={{
+                  sx={{ 
                     position: 'absolute',
                     top: 8,
                     right: 8,
@@ -285,113 +370,99 @@ const GhostCards = () => {
                       position: 'absolute',
                       top: 8,
                       right: 48,
-                      color: 'white',
-                      opacity: 0.7
-                    }} 
-                  />
-                )}
-                {isSearchMatch && !matchesFilters && (
-                  <CloseIcon 
-                    sx={{ 
-                      position: 'absolute',
-                      bottom: 8,
-                      right: 8,
-                      color: 'error.main',
-                      opacity: 0.7
-                    }} 
-                  />
-                )}
-                <CardContent>
-                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                    <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-                      {ghost.ghost}
-                      {ghost.ghost === 'Banshee' && (
-                        <IconButton 
-                          onClick={playBansheeScream}
-                          size="small"
-                          sx={{ 
-                            color: 'white',
-                            '&:hover': {
-                              color: 'primary.main'
-                            }
-                          }}
-                        >
-                          <VolumeUpIcon />
-                        </IconButton>
-                      )}
-                    </Typography>
-                  </Box>
-                  {showDescriptions && (
-                    <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-                      {ghost.description}
-                    </Typography>
-                  )}
-                  <Box sx={{ mb: 2 }}>
-                    <Typography variant="subtitle2" gutterBottom>
-                      Evidence
-                    </Typography>
-                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-                      {ghost.evidence.map((evidence) => (
-                        <Chip
-                          key={evidence}
-                          label={getEvidenceLabel(evidence)}
-                          size="small"
-                        />
-                      ))}
-                    </Box>
-                  </Box>
-                  <Divider sx={{ my: 1 }} />
-                  <Box sx={{ mb: 1 }}>
-                    <Typography variant="subtitle2">Sanity Hunt Threshold</Typography>
-                    <Typography variant="body2">
-                      {ghost.hunt_sanity_low === ghost.hunt_sanity_high
-                        ? ghost.hunt_sanity || '-'
-                        : `${ghost.hunt_sanity_low || '-'} / ${ghost.hunt_sanity || '-'} / ${ghost.hunt_sanity_high || '-'}`}
-                    </Typography>
-                  </Box>
-                  <Box sx={{ mb: 1 }}>
-                    <Typography variant="subtitle2">Movement Speed</Typography>
-                    <Typography variant="body2">
-                      {ghost.min_speed && ghost.max_speed && ghost.min_speed !== ghost.max_speed
-                        ? `${ghost.min_speed} m/s - ${ghost.max_speed} m/s`
-                        : ghost.min_speed
-                          ? `${ghost.min_speed} m/s`
-                          : '-'}
-                      {ghost.alt_speed && ` (Alt: ${ghost.alt_speed} m/s)`}
-                      {ghost.has_los && ' (Speeds up when line of sight)'}
-                    </Typography>
-                  </Box>
-                  <Divider sx={{ my: 1 }} />
-                  <Box sx={{ mb: 1 }}>
-                    <Typography variant="subtitle2">Extra Info</Typography>
-                    {ghost.wiki && (
-                      <>
-                        {ghost.wiki.tells?.filter(t => t.include_on_card).map((t, i) => (
-                          <Typography key={i} variant="body2" sx={{ mb: 0.5 }}>
-                            • {t.data}
-                          </Typography>
-                        ))}
-                        {ghost.wiki.behaviors?.filter(t => t.include_on_card).map((t, i) => (
-                          <Typography key={`b${i}`} variant="body2" sx={{ mb: 0.5 }}>
-                            • {t.data}
-                          </Typography>
-                        ))}
-                        {ghost.wiki.abilities?.filter(t => t.include_on_card).map((t, i) => (
-                          <Typography key={`a${i}`} variant="body2" sx={{ mb: 0.5 }}>
-                            • {t.data}
-                          </Typography>
-                        ))}
-                      </>
+                    color: 'white',
+                    opacity: 0.7
+                  }} 
+                />
+              )}
+              {isSearchMatch && !matchesFilters && (
+                <CloseIcon 
+                  sx={{ 
+                    position: 'absolute',
+                    bottom: 8,
+                    right: 8,
+                    color: 'error.main',
+                    opacity: 0.7
+                  }} 
+                />
+              )}
+          <CardContent>
+                <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                  <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
+                    {ghost.ghost}
+                    {ghost.ghost === 'Banshee' && (
+                      <IconButton 
+                        onClick={playBansheeScream}
+                        size="small"
+                        sx={{ 
+                          color: 'white',
+                          '&:hover': {
+                            color: 'primary.main'
+                          }
+                        }}
+                      >
+                        <VolumeUpIcon />
+                      </IconButton>
                     )}
+                  </Typography>
+                </Box>
+                {showDescriptions && (
+                  <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                    {ghost.description}
+            </Typography>
+                )}
+            <Box sx={{ mb: 2 }}>
+              <Typography variant="subtitle2" gutterBottom>
+                    Evidence
+              </Typography>
+                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                {ghost.evidence.map((evidence) => (
+                  <Chip
+                    key={evidence}
+                    label={getEvidenceLabel(evidence)}
+                    size="small"
+                  />
+                ))}
                   </Box>
-                </CardContent>
-              </Card>
-            </Grid>
-          );
-        })}
-      </Grid>
+                </Box>
+                <Divider sx={{ my: 1 }} />
+                <Box sx={{ mb: 1 }}>
+                  <Typography variant="subtitle2">Sanity Hunt Threshold</Typography>
+                  <Typography variant="body2">
+                    {ghost.hunt_sanity_low === ghost.hunt_sanity_high
+                      ? ghost.hunt_sanity || '-'
+                      : `${ghost.hunt_sanity_low || '-'} / ${ghost.hunt_sanity || '-'} / ${ghost.hunt_sanity_high || '-'}`}
+                  </Typography>
+                </Box>
+                <Box sx={{ mb: 1 }}>
+                  <Typography variant="subtitle2">Movement Speed</Typography>
+                  <Typography variant="body2">
+                    {ghost.min_speed && ghost.max_speed && ghost.min_speed !== ghost.max_speed
+                      ? `${ghost.min_speed} m/s - ${ghost.max_speed} m/s`
+                      : ghost.min_speed
+                        ? `${ghost.min_speed} m/s`
+                        : '-'}
+                    {ghost.alt_speed && ` (${ghost.alt_speed} m/s Max Speed)`}
+                    {ghost.has_los && ' (Speeds up when line of sight)'}
+                  </Typography>
+                </Box>
+                <Divider sx={{ my: 1 }} />
+                <Box sx={{ mb: 1 }}>
+                  <Typography variant="subtitle2">Extra Info</Typography>
+                  {ghost.extra_information?.map((info, i) => (
+                    <Typography key={i} variant="body2" sx={{ mb: 0.5 }}>
+                      • {info}
+                    </Typography>
+                  ))}
+                </Box>
+          </CardContent>
+        </Card>
+          </Grid>
+        );
+      })}
+    </Grid>
     </Box>
   );
 };
 
-export default GhostCards;
+export default GhostCards; 
