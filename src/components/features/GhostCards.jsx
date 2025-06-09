@@ -255,19 +255,29 @@ const GhostCards = () => {
   };
 
   const filteredGhosts = sortGhosts(ghosts.filter(ghost => {
-    // Don't show excluded ghosts
-    if (excludedGhosts.has(ghost.ghost)) {
-      return false;
-    }
-
-    // If there's a search query, show matching ghosts regardless of filters
+    // If there's a search query, show matching ghosts regardless of filters or exclusion
     if (searchQuery && ghost.ghost.toLowerCase().includes(searchQuery.toLowerCase())) {
       return true;
     }
 
+    // Don't show excluded ghosts for non-search results
+    if (excludedGhosts.has(ghost.ghost)) {
+      return false;
+    }
+
     // Otherwise, only show ghosts that match all filters
     return checkFilters(ghost);
-  }));
+  })).sort((a, b) => {
+    // If there's a search query, prioritize matches
+    if (searchQuery) {
+      const aMatches = a.ghost.toLowerCase().includes(searchQuery.toLowerCase());
+      const bMatches = b.ghost.toLowerCase().includes(searchQuery.toLowerCase());
+      if (aMatches !== bMatches) {
+        return aMatches ? -1 : 1;
+      }
+    }
+    return 0;
+  });
 
   if (filteredGhosts.length === 0) {
     return (
@@ -350,42 +360,44 @@ const GhostCards = () => {
                 boxShadow: isSearchMatch ? '0 0 10px rgba(255, 255, 255, 0.5)' : 'none'
               }}
             >
-                <IconButton
-                  onClick={() => handleTrashClick(ghost)}
-                  sx={{ 
-                    position: 'absolute',
-                    top: 8,
-                    right: 8,
-                    color: 'error.main',
-                    '&:hover': {
-                      color: 'error.dark'
-                    }
-                  }}
-                >
-                  <DeleteIcon />
-                </IconButton>
+                {!excludedGhosts.has(ghost.ghost) && (
+                  <IconButton
+                    onClick={() => handleTrashClick(ghost)}
+                    sx={{ 
+                      position: 'absolute',
+                      top: 8,
+                      right: 8,
+                      color: 'error.main',
+                      '&:hover': {
+                        color: 'error.dark'
+                      }
+                    }}
+                  >
+                    <DeleteIcon />
+                  </IconButton>
+                )}
                 {isSearchMatch && (
                   <SearchIcon 
                     sx={{ 
                       position: 'absolute',
                       top: 8,
-                      right: 48,
-                    color: 'white',
-                    opacity: 0.7
-                  }} 
-                />
-              )}
-              {isSearchMatch && !matchesFilters && (
-                <CloseIcon 
-                  sx={{ 
-                    position: 'absolute',
-                    bottom: 8,
-                    right: 8,
-                    color: 'error.main',
-                    opacity: 0.7
-                  }} 
-                />
-              )}
+                      right: 56,
+                      color: 'white',
+                      opacity: 0.7
+                    }} 
+                  />
+                )}
+                {isSearchMatch && !matchesFilters && (
+                  <CloseIcon 
+                    sx={{ 
+                      position: 'absolute',
+                      top: 8,
+                      right: 28,
+                      color: 'error.main',
+                      opacity: 0.7
+                    }} 
+                  />
+                )}
           <CardContent>
                 <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
                   <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
