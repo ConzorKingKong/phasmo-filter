@@ -1,9 +1,11 @@
 import React, { useRef, useState } from 'react';
-import { Box, Card, CardContent, Typography, Chip, Grid, Divider, IconButton, TextField, InputAdornment, Select, MenuItem, FormControl, InputLabel } from '@mui/material';
+import { Box, Card, CardContent, Typography, Chip, Grid, Divider, IconButton, TextField, InputAdornment, Select, MenuItem, FormControl, InputLabel, Collapse } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import CloseIcon from '@mui/icons-material/Close';
 import VolumeUpIcon from '@mui/icons-material/VolumeUp';
 import DeleteIcon from '@mui/icons-material/Delete';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import { useApp } from '../../context/AppContext';
 
 const GhostCards = () => {
@@ -21,6 +23,15 @@ const GhostCards = () => {
     sortOrder,
     setSortOrder
   } = useApp();
+
+  const [expandedCards, setExpandedCards] = useState({});
+
+  const toggleCard = (ghostName) => {
+    setExpandedCards(prev => ({
+      ...prev,
+      [ghostName]: !prev[ghostName]
+    }));
+  };
 
   const audioRef = useRef(new Audio('/sounds/banshee_scream.mp3'));
 
@@ -476,12 +487,24 @@ const GhostCards = () => {
                 </Box>
                 <Divider sx={{ my: 1 }} />
                 <Box sx={{ mb: 1 }}>
-                  <Typography variant="subtitle2">Extra Info</Typography>
-                  {ghost.extra_information?.map((info, i) => (
-                    <Typography key={i} variant="body2" sx={{ mb: 0.5 }}>
-                      • {info}
-                    </Typography>
-                  ))}
+                  <Box sx={{ 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    justifyContent: 'space-between',
+                    cursor: 'pointer'
+                  }} onClick={() => toggleCard(ghost.ghost)}>
+                    <Typography variant="subtitle2">Extra Info</Typography>
+                    <IconButton size="small">
+                      {expandedCards[ghost.ghost] ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+                    </IconButton>
+                  </Box>
+                  <Collapse in={expandedCards[ghost.ghost]}>
+                    {ghost.extra_information?.map((info, i) => (
+                      <Typography key={i} variant="body2" sx={{ mb: 0.5 }}>
+                        • {info}
+                      </Typography>
+                    ))}
+                  </Collapse>
                 </Box>
           </CardContent>
         </Card>
