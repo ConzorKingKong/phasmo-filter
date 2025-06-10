@@ -313,6 +313,9 @@ const EvidenceFilters = () => {
               expanded={huntEvidenceExpanded}
               onToggleExpanded={() => setHuntEvidenceExpanded(!huntEvidenceExpanded)}
               sortOrder={sortOrder}
+              selectedEvidence={selectedEvidence}
+              selectedSpeed={selectedSpeed}
+              selectedSanity={selectedSanity}
             />
           </Box>
         ) : activeTab === 1 ? (

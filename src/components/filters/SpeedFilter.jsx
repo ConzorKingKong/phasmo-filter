@@ -71,7 +71,7 @@ const SpeedFilter = ({
             letterSpacing: '1px'
           }}
         >
-          ⚡ Phantom Speed
+          ⚡ Ghost Speed
         </Typography>
         <IconButton sx={{ color: '#8a2be2' }}>
           {expanded ? <ExpandLessIcon /> : <ExpandMoreIcon />}

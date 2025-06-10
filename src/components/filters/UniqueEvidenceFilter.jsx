@@ -19,7 +19,10 @@ const UniqueEvidenceFilter = ({
   huntEvidenceList,
   expanded,
   onToggleExpanded,
-  sortOrder
+  sortOrder,
+  selectedEvidence,
+  selectedSpeed,
+  selectedSanity
 }) => {
   const [huntEvidenceSearch, setHuntEvidenceSearch] = useState('');
   const isEvidenceInSearchResults = (evidence) => {
@@ -91,8 +94,24 @@ const UniqueEvidenceFilter = ({
             .slice()
             .sort((a, b) => {
               // First sort by filtered status
-              const aFiltered = a.ghost.split(', ').every(ghostName => isGhostFilteredOut(ghostName, { selectedEvidence: {}, selectedSpeed: {}, selectedHuntEvidence, selectedSanity: {}, huntEvidenceList }, ghosts));
-              const bFiltered = b.ghost.split(', ').every(ghostName => isGhostFilteredOut(ghostName, { selectedEvidence: {}, selectedSpeed: {}, selectedHuntEvidence, selectedSanity: {}, huntEvidenceList }, ghosts));
+              const aFiltered = a.ghost.split(', ').every(ghostName => 
+                isGhostFilteredOut(ghostName, { 
+                  selectedEvidence, 
+                  selectedSpeed, 
+                  selectedHuntEvidence: {}, // Don't include hunt evidence in filtering check
+                  selectedSanity, 
+                  huntEvidenceList 
+                }, ghosts)
+              );
+              const bFiltered = b.ghost.split(', ').every(ghostName => 
+                isGhostFilteredOut(ghostName, { 
+                  selectedEvidence, 
+                  selectedSpeed, 
+                  selectedHuntEvidence: {}, // Don't include hunt evidence in filtering check
+                  selectedSanity, 
+                  huntEvidenceList 
+                }, ghosts)
+              );
               if (aFiltered !== bFiltered) {
                 return aFiltered ? 1 : -1;
               }
@@ -136,7 +155,16 @@ const UniqueEvidenceFilter = ({
               return aMinIndex - bMinIndex;
             })
             .map((evidence) => {
-              const isFiltered = evidence.ghost.split(', ').every(ghostName => isGhostFilteredOut(ghostName, { selectedEvidence: {}, selectedSpeed: {}, selectedHuntEvidence, selectedSanity: {}, huntEvidenceList }, ghosts));
+              // Check if this evidence doesn't match any ghosts when other filters are applied
+              const isFiltered = evidence.ghost.split(', ').every(ghostName => 
+                isGhostFilteredOut(ghostName, { 
+                  selectedEvidence, 
+                  selectedSpeed, 
+                  selectedHuntEvidence: {}, // Don't include hunt evidence in filtering check
+                  selectedSanity, 
+                  huntEvidenceList 
+                }, ghosts)
+              );
               const matchesSearch = huntEvidenceSearch && 
                 evidence.label.toLowerCase().includes(huntEvidenceSearch.toLowerCase());
               const isExcluded = selectedHuntEvidence[evidence.id] === false;
