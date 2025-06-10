@@ -21,6 +21,8 @@ const EvidenceFilters = () => {
     setSelectedSpeed,
     selectedHuntEvidence,
     setSelectedHuntEvidence,
+    selectedSanity,
+    setSelectedSanity,
     searchQuery,
     setSearchQuery,
     setExcludedGhosts,
@@ -36,7 +38,8 @@ const EvidenceFilters = () => {
   const [huntCooldownTimeLeft, setHuntCooldownTimeLeft] = useState(25); // 25 seconds
   const [huntEvidenceSearch, setHuntEvidenceSearch] = useState('');
   const [evidenceExpanded, setEvidenceExpanded] = useState(false);
-  const [speedExpanded, setSpeedExpanded] = useState(true);
+  const [speedExpanded, setSpeedExpanded] = useState(false);
+  const [sanityExpanded, setSanityExpanded] = useState(false);
   const [huntEvidenceExpanded, setHuntEvidenceExpanded] = useState(true);
 
   // Timer refs
@@ -272,6 +275,25 @@ const EvidenceFilters = () => {
     });
   };
 
+  const handleSanityClick = (sanityType) => {
+    setSelectedSanity(prev => {
+      const currentState = prev[sanityType];
+      // Toggle between undefined (neutral) and true (included)
+      const newState = currentState === undefined ? true : undefined;
+      return { ...prev, [sanityType]: newState };
+    });
+  };
+
+  const handleSanityExclude = (sanityType, e) => {
+    e.stopPropagation(); // Prevent the checkbox click
+    setSelectedSanity(prev => {
+      const currentState = prev[sanityType];
+      // Toggle between undefined (neutral) and false (excluded)
+      const newState = currentState === undefined ? false : undefined;
+      return { ...prev, [sanityType]: newState };
+    });
+  };
+
   const getEvidenceLabel = (evidence) => {
     const labels = {
       'EMF 5': 'EMF Level 5',
@@ -301,6 +323,13 @@ const EvidenceFilters = () => {
 
   const getHuntEvidenceState = (evidence) => {
     const state = selectedHuntEvidence[evidence];
+    if (state === undefined) return 'neutral';
+    if (state === false) return 'excluded';
+    return 'included';
+  };
+
+  const getSanityState = (sanityType) => {
+    const state = selectedSanity[sanityType];
     if (state === undefined) return 'neutral';
     if (state === false) return 'excluded';
     return 'included';
@@ -393,6 +422,29 @@ const EvidenceFilters = () => {
       ghost.ghost.toLowerCase().includes(searchQuery.toLowerCase().trim()) && 
       ghostNames.includes(ghost.ghost)
     );
+  };
+
+  const isSanityInSearchResults = (sanityType) => {
+    if (!searchQuery) return false;
+    return ghosts.some(ghost => {
+      if (!ghost.ghost.toLowerCase().includes(searchQuery.toLowerCase().trim())) return false;
+      
+      const sanity = parseFloat(ghost.hunt_sanity) || 0;
+      const sanityLow = parseFloat(ghost.hunt_sanity_low) || sanity;
+      const sanityHigh = parseFloat(ghost.hunt_sanity_high) || sanity;
+      
+      switch (sanityType) {
+        case 'high':
+          return sanityHigh >= 80 && sanityHigh <= 100;
+        case 'medium':
+          return sanityHigh >= 60 && sanityHigh <= 80;
+        case 'fifty':
+          return sanity === 50;
+        case 'low':
+          return sanityLow > 0 && sanityLow <= 40;
+      }
+      return false;
+    });
   };
 
   const isGhostFilteredOut = (ghostName) => {
@@ -589,6 +641,13 @@ const EvidenceFilters = () => {
                     return acc;
                   }, {});
                   setSelectedHuntEvidence(resetHuntEvidence);
+
+                  // Reset all sanity states
+                  const resetSanity = Object.keys(selectedSanity).reduce((acc, key) => {
+                    acc[key] = undefined;
+                    return acc;
+                  }, {});
+                  setSelectedSanity(resetSanity);
 
                   // Reset excluded ghosts
                   setExcludedGhosts(new Set());
@@ -875,6 +934,125 @@ const EvidenceFilters = () => {
                       <IconButton
                         size="small"
                         onClick={(e) => handleSpeedExclude(speed.id, e)}
+                        sx={{
+                          color: isExcluded ? 'error.main' : 'text.secondary',
+                          '&:hover': {
+                            color: 'error.main',
+                          },
+                          opacity: isFiltered ? 0.5 : 1,
+                        }}
+                      >
+                        <CancelIcon fontSize="small" />
+                      </IconButton>
+                    </Box>
+                  );
+                })}
+            </Box>
+            </Collapse>
+
+            <Divider sx={{ my: 2 }} />
+
+            <Box sx={{ display: 'flex', alignItems: 'center', mb: 1, cursor: 'pointer' }} onClick={() => setSanityExpanded(!sanityExpanded)}>
+              <Typography variant="h6" sx={{ flexGrow: 1 }}>
+              Sanity
+            </Typography>
+              <IconButton>
+                {sanityExpanded ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+              </IconButton>
+            </Box>
+            <Collapse in={sanityExpanded}>
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, mb: 2 }}>
+              {[
+                { id: 'high', label: '100%-80%' },
+                { id: 'medium', label: '80%-60%' },
+                { id: 'fifty', label: '50%' },
+                { id: 'low', label: '> 40%' }
+              ]
+                .slice()
+                .sort((a, b) => {
+                    // Only sort by search match
+                  const aMatchesSearch = isSanityInSearchResults(a.id);
+                  const bMatchesSearch = isSanityInSearchResults(b.id);
+                  if (aMatchesSearch !== bMatchesSearch) {
+                    return aMatchesSearch ? -1 : 1;
+                  }
+
+                    // Maintain original order
+                  return 0;
+                })
+                .map((sanity) => {
+                  const isFiltered = !ghosts.some(ghost => {
+                    if (!ghost.ghost.toLowerCase().includes(searchQuery.toLowerCase().trim())) return false;
+                    
+                    const sanityValue = parseFloat(ghost.hunt_sanity) || 0;
+                    const sanityLow = parseFloat(ghost.hunt_sanity_low) || sanityValue;
+                    const sanityHigh = parseFloat(ghost.hunt_sanity_high) || sanityValue;
+                    
+                    switch (sanity.id) {
+                      case 'high':
+                        return sanityHigh >= 80 && sanityHigh <= 100;
+                      case 'medium':
+                        return sanityHigh >= 60 && sanityHigh <= 80;
+                      case 'fifty':
+                        return sanityValue === 50;
+                      case 'low':
+                        return sanityLow > 0 && sanityLow <= 40;
+                    }
+                    return false;
+                  });
+                  const isExcluded = selectedSanity[sanity.id] === false;
+                  const isIncluded = selectedSanity[sanity.id] === true;
+                  return (
+                    <Box
+                      key={sanity.id}
+                      sx={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 1,
+                        p: 0.5,
+                        borderRadius: 1,
+                        bgcolor: isExcluded ? 'error.dark' : isIncluded ? 'success.dark' : 'transparent',
+                        '&:hover': {
+                          bgcolor: isExcluded ? 'error.dark' : isIncluded ? 'success.dark' : 'action.hover',
+                        },
+                        cursor: 'pointer',
+                        opacity: isFiltered ? 0.5 : 1,
+                      }}
+                      onClick={() => handleSanityClick(sanity.id)}
+                    >
+                      <Checkbox
+                        checked={isIncluded}
+                        sx={{
+                          color: isFiltered ? 'text.disabled' : 'text.secondary',
+                          '&.Mui-checked': {
+                            color: isFiltered ? 'text.disabled' : 'success.main',
+                          },
+                        }}
+                      />
+                      <Box sx={{ 
+                        flexGrow: 1,
+                        display: 'flex',
+                        alignItems: 'center',
+                        color: isFiltered ? 'text.disabled' :
+                               isExcluded ? 'error.main' :
+                               isIncluded ? 'success.main' :
+                               'text.primary'
+                      }}>
+                        {sanity.label}
+                        {isSanityInSearchResults(sanity.id) && (
+                          <FilterAltIcon 
+                            sx={{ 
+                              ml: 1, 
+                              fontSize: '1rem',
+                              color: 'primary.main',
+                              opacity: 0.7
+                            }} 
+                          />
+                        )}
+                      </Box>
+                      <IconButton
+                        size="small"
+                        onClick={(e) => handleSanityExclude(sanity.id, e)}
                         sx={{
                           color: isExcluded ? 'error.main' : 'text.secondary',
                           '&:hover': {

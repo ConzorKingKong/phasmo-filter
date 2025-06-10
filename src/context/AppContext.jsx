@@ -9,6 +9,7 @@ export const AppProvider = ({ children }) => {
   const [selectedEvidence, setSelectedEvidence] = useState({})
   const [selectedSpeed, setSelectedSpeed] = useState({})
   const [selectedHuntEvidence, setSelectedHuntEvidence] = useState({})
+  const [selectedSanity, setSelectedSanity] = useState({})
   const [searchQuery, setSearchQuery] = useState('')
   const [excludedGhosts, setExcludedGhosts] = useState(new Set())
   const [sortOrder, setSortOrder] = useState('default')
@@ -54,6 +55,8 @@ export const AppProvider = ({ children }) => {
     setSelectedSpeed,
     selectedHuntEvidence,
     setSelectedHuntEvidence,
+    selectedSanity,
+    setSelectedSanity,
     searchQuery,
     setSearchQuery,
     excludedGhosts,
