@@ -4,6 +4,7 @@ import SearchIcon from '@mui/icons-material/Search';
 import CloseIcon from '@mui/icons-material/Close';
 import VolumeUpIcon from '@mui/icons-material/VolumeUp';
 import DeleteIcon from '@mui/icons-material/Delete';
+import RestoreIcon from '@mui/icons-material/Restore';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import { useApp } from '../../context/AppContext';
@@ -76,6 +77,24 @@ const GhostCards = () => {
     return false;
   };
 
+  // Helper function to check if a ghost can have specific hunt evidence (includes Mimic special case)
+  const ghostCanHaveHuntEvidence = (ghost, evidenceId) => {
+    const ghostNames = huntEvidenceMap[evidenceId];
+    if (!ghostNames) return false;
+    
+    // Check if this ghost is directly associated with this evidence
+    if (ghostNames.includes(ghost.ghost)) {
+      return true;
+    }
+    
+    // Special case: Mimic can copy any ghost's unique traits
+    if (ghost.ghost === 'The Mimic') {
+      return true;
+    }
+    
+    return false;
+  };
+
   const huntEvidenceMap = {
     'hunts_after_smudge_1': ['Demon'],
     'hunts_after_smudge_3': ['Spirit'],
@@ -112,7 +131,8 @@ const GhostCards = () => {
     'speed_with_breaker': ['Jinn'],
     'never_turns_off_breaker': ['Jinn'],
     'hunts_20s': ['Demon'],
-    'speed_when_hiding': ['Revenant']
+    'speed_when_hiding': ['Revenant'],
+    'copies_ghost_traits': ['The Mimic']
   };
 
   const checkFilters = (ghost) => {
@@ -164,10 +184,8 @@ const GhostCards = () => {
     // Check hunt evidence filters
     const huntEvidenceMatch = Object.entries(selectedHuntEvidence).every(([evidence, state]) => {
       if (state === undefined) return true;
-      const ghostNames = huntEvidenceMap[evidence];
-      if (!ghostNames) return true;
-      if (state === true) return ghostNames.includes(ghost.ghost);
-      if (state === false) return !ghostNames.includes(ghost.ghost);
+      if (state === true) return ghostCanHaveHuntEvidence(ghost, evidence);
+      if (state === false) return !ghostCanHaveHuntEvidence(ghost, evidence);
       return true;
     });
 
@@ -225,6 +243,37 @@ const GhostCards = () => {
 
           if (isExclusive || allGhostsExcluded) {
             newState[evidenceId] = false;
+          }
+        });
+        return newState;
+      });
+
+      return newExcluded;
+    });
+  };
+
+  const handleRestoreClick = (ghost) => {
+    // Remove ghost from excluded set
+    setExcludedGhosts(prev => {
+      const newExcluded = new Set(prev);
+      newExcluded.delete(ghost.ghost);
+      
+      // Find all evidence associated with this ghost
+      const ghostEvidence = Object.entries(huntEvidenceMap)
+        .filter(([_, ghostNames]) => ghostNames.includes(ghost.ghost))
+        .map(([evidenceId]) => evidenceId);
+
+      // Reset evidence to neutral (undefined) if it was set to excluded because of this ghost
+      setSelectedHuntEvidence(prevEvidence => {
+        const newState = { ...prevEvidence };
+        ghostEvidence.forEach(evidenceId => {
+          const associatedGhosts = huntEvidenceMap[evidenceId];
+          // If this evidence was excluded and this ghost was the only reason, reset it
+          if (prevEvidence[evidenceId] === false) {
+            const otherExcludedGhosts = associatedGhosts.filter(g => g !== ghost.ghost && newExcluded.has(g));
+            if (otherExcludedGhosts.length === 0) {
+              newState[evidenceId] = undefined;
+            }
           }
         });
         return newState;
@@ -338,8 +387,155 @@ const GhostCards = () => {
     return (
       <Box sx={{ p: 2, textAlign: 'center' }}>
         <Typography variant="h6" color="text.secondary">
-          No ghosts match the selected filters. Was the ghost manually removed? *MAY BE MIMIC UNTIL FILTER LOGIC IS IMPROVED TO SUPPORT IT*
+          No ghosts match the selected filters. Was the ghost manually removed?
         </Typography>
+        
+        {excludedGhosts.size > 0 && (
+          <Box sx={{ mt: 3 }}>
+            <Typography variant="subtitle1" color="text.primary" sx={{ mb: 2 }}>
+              Manually Removed Ghosts:
+            </Typography>
+            <Grid 
+              container 
+              spacing={2} 
+              sx={{ 
+                display: 'grid',
+                gridTemplateColumns: {
+                  xs: '1fr',
+                  sm: 'repeat(3, 1fr)'
+                },
+                gap: 2,
+                justifyContent: 'center'
+              }}
+            >
+              {Array.from(excludedGhosts).map((ghostName) => {
+                const ghost = ghosts.find(g => g.ghost === ghostName);
+                if (!ghost) return null;
+                
+                return (
+                  <Grid item key={ghost.ghost}>
+                    <Card 
+                      sx={{ 
+                        height: '100%',
+                        position: 'relative'
+                      }}
+                    >
+                      <IconButton
+                        onClick={() => handleRestoreClick(ghost)}
+                        sx={{ 
+                          position: 'absolute',
+                          top: 8,
+                          right: 8,
+                          color: 'success.main',
+                          '&:hover': {
+                            color: 'success.dark'
+                          }
+                        }}
+                      >
+                        <RestoreIcon />
+                      </IconButton>
+                      <CloseIcon 
+                        sx={{ 
+                          position: 'absolute',
+                          top: 14,
+                          right: 62,
+                          color: 'error.main',
+                          opacity: 0.7
+                        }} 
+                      />
+                      <CardContent>
+                        <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                          <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
+                            {ghost.ghost}
+                            {ghost.ghost === 'Banshee' && (
+                              <IconButton 
+                                onClick={playBansheeScream}
+                                size="small"
+                                sx={{ 
+                                  color: 'white',
+                                  '&:hover': {
+                                    color: 'primary.main'
+                                  }
+                                }}
+                              >
+                                <VolumeUpIcon />
+                              </IconButton>
+                            )}
+                          </Typography>
+                        </Box>
+                        <Box sx={{ mb: 2 }}>
+                          <Typography variant="subtitle2" gutterBottom>
+                            Evidence
+                          </Typography>
+                          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                            {ghost.evidence.map((evidence) => (
+                              <Chip
+                                key={evidence}
+                                label={getEvidenceLabel(evidence)}
+                                size="small"
+                                sx={{
+                                  ...(ghost.nightmare_evidence?.includes(evidence) && {
+                                    backgroundColor: 'primary.main',
+                                    color: 'white',
+                                    '&:hover': {
+                                      backgroundColor: 'primary.dark'
+                                    }
+                                  })
+                                }}
+                              />
+                            ))}
+                          </Box>
+                        </Box>
+                        <Divider sx={{ my: 1 }} />
+                        <Box sx={{ mb: 1 }}>
+                          <Typography variant="subtitle2">Sanity Hunt Threshold</Typography>
+                          <Typography variant="body2">
+                            {ghost.hunt_sanity_low === ghost.hunt_sanity_high
+                              ? ghost.hunt_sanity || '-'
+                              : `${ghost.hunt_sanity_low || '-'} / ${ghost.hunt_sanity || '-'} / ${ghost.hunt_sanity_high || '-'}`}
+                          </Typography>
+                        </Box>
+                        <Box sx={{ mb: 1 }}>
+                          <Typography variant="subtitle2">Movement Speed</Typography>
+                          <Typography variant="body2">
+                            {ghost.min_speed && ghost.max_speed && ghost.min_speed !== ghost.max_speed
+                              ? `${ghost.min_speed} m/s - ${ghost.max_speed} m/s`
+                              : ghost.min_speed
+                                ? `${ghost.min_speed} m/s`
+                                : '-'}
+                            {ghost.alt_speed && ` (${ghost.alt_speed} m/s Max Speed)`}
+                            {ghost.has_los && ' (Speeds up when line of sight)'}
+                          </Typography>
+                        </Box>
+                        <Divider sx={{ my: 1 }} />
+                        <Box sx={{ mb: 1 }}>
+                          <Box sx={{ 
+                            display: 'flex', 
+                            alignItems: 'center', 
+                            justifyContent: 'space-between',
+                            cursor: 'pointer'
+                          }} onClick={() => toggleCard(ghost.ghost)}>
+                            <Typography variant="subtitle2">Extra Info</Typography>
+                            <IconButton size="small">
+                              {expandedCards[ghost.ghost] ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+                            </IconButton>
+                          </Box>
+                          <Collapse in={expandedCards[ghost.ghost]}>
+                            {ghost.extra_information?.map((info, i) => (
+                              <Typography key={i} variant="body2" sx={{ mb: 0.5 }}>
+                                • {info}
+                              </Typography>
+                            ))}
+                          </Collapse>
+                        </Box>
+                      </CardContent>
+                    </Card>
+                  </Grid>
+                );
+              })}
+            </Grid>
+          </Box>
+        )}
       </Box>
     );
   }
@@ -438,12 +634,38 @@ const GhostCards = () => {
                   >
                     <DeleteIcon />
                   </IconButton>
+                ) : isSearchMatch && excludedGhosts.has(ghost.ghost) ? (
+                  <>
+                    <IconButton
+                      onClick={() => handleRestoreClick(ghost)}
+                      sx={{ 
+                        position: 'absolute',
+                        top: 8,
+                        right: 8,
+                        color: 'success.main',
+                        '&:hover': {
+                          color: 'success.dark'
+                        }
+                      }}
+                    >
+                      <RestoreIcon />
+                    </IconButton>
+                    <CloseIcon 
+                      sx={{ 
+                        position: 'absolute',
+                        top: 14,
+                        right: 62,
+                        color: 'error.main',
+                        opacity: 0.7
+                      }} 
+                    />
+                  </>
                 ) : isSearchMatch && !matchesFilters && (
                   <CloseIcon 
                     sx={{ 
                       position: 'absolute',
-                      top: 8,
-                      right: 8,
+                      top: 14,
+                      right: 14,
                       color: 'error.main',
                       opacity: 0.7
                     }} 
@@ -453,8 +675,8 @@ const GhostCards = () => {
                   <SearchIcon 
                     sx={{ 
                       position: 'absolute',
-                      top: 8,
-                      right: 56,
+                      top: 14,
+                      right: excludedGhosts.has(ghost.ghost) ? 110 : 62,
                       color: 'white',
                       opacity: 0.7
                     }} 

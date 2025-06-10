@@ -392,7 +392,8 @@ const EvidenceFilters = () => {
     { id: 'speed_with_breaker', label: "Ghost's hunt speed is fast when breaker is on and player is far away", ghost: 'Jinn' },
     { id: 'never_turns_off_breaker', label: 'Ghost never turns off breaker', ghost: 'Jinn' },
     { id: 'hunts_20s', label: 'Hunts again in 20 seconds instead of 25 (easiest to test at 0 sanity)', ghost: 'Demon' },
-    { id: 'speed_when_hiding', label: "Ghost's hunt speed is extremely slow when player isn't detected, and very fast when it detects a player", ghost: 'Revenant' }
+    { id: 'speed_when_hiding', label: "Ghost's hunt speed is extremely slow when player isn't detected, and very fast when it detects a player", ghost: 'Revenant' },
+    { id: 'copies_ghost_traits', label: 'Copies other ghost\'s traits every 30s-2min', ghost: 'The Mimic' }
   ];
 
   const isEvidenceInSearchResults = (evidence) => {
@@ -416,6 +417,60 @@ const EvidenceFilters = () => {
     }
     
     return false;
+  };
+
+  // Helper function to check if a ghost can have specific hunt evidence (includes Mimic special case)
+  const ghostCanHaveHuntEvidence = (ghost, evidenceId) => {
+    const huntEvidence = huntEvidenceList.find(e => e.id === evidenceId);
+    if (!huntEvidence) return false;
+    
+    const ghostNames = huntEvidence.ghost.split(', ');
+    
+    // Check if this ghost is directly associated with this evidence
+    if (ghostNames.includes(ghost.ghost)) {
+      return true;
+    }
+    
+    // Special case: Mimic can copy any ghost's unique traits
+    if (ghost.ghost === 'The Mimic') {
+      return true;
+    }
+    
+    return false;
+  };
+
+  // Function to detect if current hunt evidence selections suggest a Mimic
+  const detectMimicFromHuntEvidence = () => {
+    const selectedHuntEvidenceIds = Object.entries(selectedHuntEvidence)
+      .filter(([_, state]) => state === true)
+      .map(([evidenceId]) => evidenceId);
+    
+    if (selectedHuntEvidenceIds.length < 2) {
+      return false; // Need at least 2 different unique evidence to suggest Mimic
+    }
+    
+    // Get all ghosts associated with the selected hunt evidence
+    const associatedGhosts = new Set();
+    selectedHuntEvidenceIds.forEach(evidenceId => {
+      const huntEvidence = huntEvidenceList.find(e => e.id === evidenceId);
+      if (huntEvidence) {
+        huntEvidence.ghost.split(', ').forEach(ghostName => {
+          associatedGhosts.add(ghostName);
+        });
+      }
+    });
+    
+    // Check if any single ghost (other than Mimic) could have all selected hunt evidence
+    const nonMimicGhosts = Array.from(associatedGhosts).filter(ghostName => ghostName !== 'The Mimic');
+    const canSingleGhostHaveAll = nonMimicGhosts.some(ghostName => {
+      return selectedHuntEvidenceIds.every(evidenceId => {
+        const huntEvidence = huntEvidenceList.find(e => e.id === evidenceId);
+        return huntEvidence && huntEvidence.ghost.split(', ').includes(ghostName);
+      });
+    });
+    
+    // If no single ghost can have all the evidence, it suggests a Mimic
+    return !canSingleGhostHaveAll;
   };
 
   const isEvidenceImpossible = (evidenceToCheck) => {
@@ -469,11 +524,8 @@ const EvidenceFilters = () => {
       // Check hunt evidence filters
       const huntEvidenceMatch = Object.entries(selectedHuntEvidence).every(([evidence, state]) => {
         if (state === undefined) return true;
-        const huntEvidence = huntEvidenceList.find(e => e.id === evidence);
-        if (!huntEvidence) return true;
-        const ghostNames = huntEvidence.ghost.split(', ');
-        if (state === true) return ghostNames.includes(ghost.ghost);
-        if (state === false) return !ghostNames.includes(ghost.ghost);
+        if (state === true) return ghostCanHaveHuntEvidence(ghost, evidence);
+        if (state === false) return !ghostCanHaveHuntEvidence(ghost, evidence);
         return true;
       });
 
@@ -630,17 +682,8 @@ const EvidenceFilters = () => {
       // Check hunt evidence filters
       const huntEvidenceMatch = Object.entries(selectedHuntEvidence).every(([evidence, state]) => {
         if (state === undefined) return true;
-        const huntEvidence = huntEvidenceList.find(e => e.id === evidence);
-        if (!huntEvidence) return true;
-        const ghostNames = huntEvidence.ghost.split(', ');
-        if (state === true) {
-          // If this evidence is selected, the ghost must be in the list
-          return ghostNames.includes(ghost.ghost);
-        }
-        if (state === false) {
-          // If this evidence is excluded, the ghost must not be in the list
-          return !ghostNames.includes(ghost.ghost);
-        }
+        if (state === true) return ghostCanHaveHuntEvidence(ghost, evidence);
+        if (state === false) return !ghostCanHaveHuntEvidence(ghost, evidence);
         return true;
       });
 
