@@ -98,7 +98,7 @@ const UniqueEvidenceFilter = ({
                 isGhostFilteredOut(ghostName, { 
                   selectedEvidence, 
                   selectedSpeed, 
-                  selectedHuntEvidence: {}, // Don't include hunt evidence in filtering check
+                  selectedHuntEvidence, // Include hunt evidence in filtering check
                   selectedSanity, 
                   huntEvidenceList 
                 }, ghosts)
@@ -107,7 +107,7 @@ const UniqueEvidenceFilter = ({
                 isGhostFilteredOut(ghostName, { 
                   selectedEvidence, 
                   selectedSpeed, 
-                  selectedHuntEvidence: {}, // Don't include hunt evidence in filtering check
+                  selectedHuntEvidence, // Include hunt evidence in filtering check
                   selectedSanity, 
                   huntEvidenceList 
                 }, ghosts)
@@ -160,7 +160,7 @@ const UniqueEvidenceFilter = ({
                 isGhostFilteredOut(ghostName, { 
                   selectedEvidence, 
                   selectedSpeed, 
-                  selectedHuntEvidence: {}, // Don't include hunt evidence in filtering check
+                  selectedHuntEvidence, // Include hunt evidence in filtering check
                   selectedSanity, 
                   huntEvidenceList 
                 }, ghosts)
