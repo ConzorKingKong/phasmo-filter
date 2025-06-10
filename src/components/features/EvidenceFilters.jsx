@@ -22,6 +22,7 @@ const EvidenceFilters = () => {
     searchQuery,
     setSearchQuery,
     setExcludedGhosts,
+    excludedGhosts,
     ghosts,
     sortOrder,
     setSortOrder,
@@ -208,29 +209,58 @@ const EvidenceFilters = () => {
               >
                 🔮 Spectral Filters 🔮
               </Typography>
-              <Button
-                variant="outlined"
-                color="secondary"
-                onClick={resetAllFilters}
-                className="spooky-button"
-                sx={{
-                  fontSize: '1.1rem',
-                  px: 3,
-                  py: 1.5,
-                  border: '2px solid #e94560',
-                  color: '#e94560',
-                  display: 'block',
-                  mx: 'auto',
-                  '&:hover': {
-                    border: '2px solid #ff6b8a',
-                    color: '#ff6b8a',
-                    background: 'rgba(233, 69, 96, 0.1)',
-                    transform: 'translateY(-2px) scale(1.05)',
-                  }
-                }}
-              >
-                🔄 Reset All
-              </Button>
+              <Box sx={{ 
+                display: 'flex', 
+                gap: 2, 
+                justifyContent: 'center',
+                flexWrap: 'wrap'
+              }}>
+                <Button
+                  variant="outlined"
+                  color="secondary"
+                  onClick={resetAllFilters}
+                  className="spooky-button"
+                  sx={{
+                    fontSize: '1.1rem',
+                    px: 3,
+                    py: 1.5,
+                    minWidth: '200px',
+                    border: '2px solid #e94560',
+                    color: '#e94560',
+                    '&:hover': {
+                      border: '2px solid #ff6b8a',
+                      color: '#ff6b8a',
+                      background: 'rgba(233, 69, 96, 0.1)',
+                      transform: 'translateY(-2px) scale(1.05)',
+                    }
+                  }}
+                >
+                  🔄 Reset All Filters
+                </Button>
+                {excludedGhosts.size > 0 && (
+                  <Button
+                    variant="outlined"
+                    onClick={() => setExcludedGhosts(new Set())}
+                    className="spooky-button"
+                    sx={{
+                      fontSize: '1.1rem',
+                      px: 3,
+                      py: 1.5,
+                      minWidth: '200px',
+                      border: '2px solid #00ff41',
+                      color: '#00ff41',
+                      '&:hover': {
+                        border: '2px solid #32ff51',
+                        color: '#32ff51',
+                        background: 'rgba(0, 255, 65, 0.1)',
+                        transform: 'translateY(-2px) scale(1.05)',
+                      }
+                    }}
+                  >
+                    👻 Restore Removed Ghosts
+                  </Button>
+                )}
+              </Box>
             </Box>
 
             <StandardEvidenceFilter

@@ -87,6 +87,7 @@ const GhostCards = () => {
     });
   }, [setExcludedGhosts, setSelectedHuntEvidence, huntEvidenceList]);
 
+
   // Memoize the search query processing
   const lowerSearchQuery = useMemo(() => 
     searchQuery ? searchQuery.toLowerCase() : null
@@ -264,7 +265,7 @@ const GhostCards = () => {
           </Typography>
           {excludedGhosts.size > 0 && (
             <Box sx={{ mt: 3 }}>
-              <Typography variant="h6" gutterBottom>
+              <Typography variant="h6" sx={{ textAlign: 'center', mb: 2 }}>
                 Manually Removed Ghosts
               </Typography>
               <Grid 
