@@ -954,7 +954,7 @@ const EvidenceFilters = () => {
 
             <Box sx={{ display: 'flex', alignItems: 'center', mb: 1, cursor: 'pointer' }} onClick={() => setSanityExpanded(!sanityExpanded)}>
               <Typography variant="h6" sx={{ flexGrow: 1 }}>
-              Sanity
+              Hunt Sanity
             </Typography>
               <IconButton>
                 {sanityExpanded ? <ExpandLessIcon /> : <ExpandMoreIcon />}
