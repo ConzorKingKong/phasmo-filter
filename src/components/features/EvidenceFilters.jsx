@@ -345,33 +345,6 @@ const EvidenceFilters = () => {
     return labels[evidence] || evidence;
   };
 
-  const getEvidenceState = (evidence) => {
-    const state = selectedEvidence[evidence];
-    if (state === undefined) return 'neutral';
-    if (state === false) return 'excluded';
-    return 'included';
-  };
-
-  const getSpeedState = (speedType) => {
-    const state = selectedSpeed[speedType];
-    if (state === undefined) return 'neutral';
-    if (state === false) return 'excluded';
-    return 'included';
-  };
-
-  const getHuntEvidenceState = (evidence) => {
-    const state = selectedHuntEvidence[evidence];
-    if (state === undefined) return 'neutral';
-    if (state === false) return 'excluded';
-    return 'included';
-  };
-
-  const getSanityState = (sanityType) => {
-    const state = selectedSanity[sanityType];
-    if (state === undefined) return 'neutral';
-    if (state === false) return 'excluded';
-    return 'included';
-  };
 
   const huntEvidenceList = [
     { id: 'hunts_after_smudge_1', label: 'Hunts 1 minute after smudge (use timer under tools tab after smudging)', ghost: 'Demon' },
@@ -551,7 +524,36 @@ const EvidenceFilters = () => {
         return true;
       });
 
-      return evidenceMatch && speedMatch && huntEvidenceMatch;
+      // Check sanity filters
+      const sanityMatch = Object.entries(selectedSanity).every(([sanityType, state]) => {
+        if (state === undefined) return true;
+        
+        const sanity = parseFloat(ghost.hunt_sanity) || 0;
+        const sanityLow = parseFloat(ghost.hunt_sanity_low) || sanity;
+        const sanityHigh = parseFloat(ghost.hunt_sanity_high) || sanity;
+        
+        let hasThisSanityRange = false;
+        switch (sanityType) {
+          case 'high':
+            hasThisSanityRange = sanityHigh >= 80 && sanityHigh <= 100;
+            break;
+          case 'medium':
+            hasThisSanityRange = sanityHigh >= 60 && sanityHigh <= 80;
+            break;
+          case 'fifty':
+            hasThisSanityRange = sanity === 50;
+            break;
+          case 'low':
+            hasThisSanityRange = sanityLow > 0 && sanityLow <= 40;
+            break;
+        }
+        
+        if (state === true) return hasThisSanityRange;
+        if (state === false) return !hasThisSanityRange;
+        return true;
+      });
+
+      return evidenceMatch && speedMatch && huntEvidenceMatch && sanityMatch;
     });
   };
 

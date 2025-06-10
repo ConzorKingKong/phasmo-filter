@@ -24,37 +24,6 @@ body {
   min-height: 100vh;
 }
 
-.ghost-card {
-  transition: transform 0.2s ease-in-out;
-}
-
-.ghost-card:hover {
-  transform: translateY(-2px);
-}
-
-.evidence-chip {
-  margin: 4px;
-}
-
-.timer-display {
-  font-family: 'Courier New', monospace;
-  font-size: 2rem;
-  font-weight: bold;
-}
-
-.bpm-finder {
-  text-align: center;
-}
-
-.bpm-display {
-  font-size: 1.5rem;
-  font-weight: bold;
-  margin: 1rem 0;
-}
-
-.settings-drawer {
-  width: 320px;
-}
 
 @media (prefers-color-scheme: light) {
   :root {

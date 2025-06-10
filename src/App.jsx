@@ -3,11 +3,9 @@ import { ThemeProvider, createTheme, useMediaQuery, useTheme, IconButton, Drawer
 import { BrowserRouter as Router } from 'react-router-dom'
 import CssBaseline from '@mui/material/CssBaseline'
 import Box from '@mui/material/Box'
-import Layout from './components/layout/Layout'
 import { AppProvider } from './context/AppContext'
 import './App.css'
 import MenuIcon from '@mui/icons-material/Menu'
-import FilterListIcon from '@mui/icons-material/FilterList'
 import EvidenceFilters from './components/features/EvidenceFilters'
 import GhostCards from './components/features/GhostCards'
 

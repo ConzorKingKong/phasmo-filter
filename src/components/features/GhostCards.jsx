@@ -18,7 +18,6 @@ const GhostCards = () => {
     selectedSanity,
     searchQuery,
     setSearchQuery,
-    showDescriptions,
     excludedGhosts,
     setExcludedGhosts,
     sortOrder,
@@ -466,11 +465,6 @@ const GhostCards = () => {
                     )}
                   </Typography>
                 </Box>
-                {showDescriptions && (
-                  <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-                    {ghost.description}
-            </Typography>
-                )}
             <Box sx={{ mb: 2 }}>
               <Typography variant="subtitle2" gutterBottom>
                     Evidence
