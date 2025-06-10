@@ -49,6 +49,8 @@ const EvidenceFilters = () => {
   const huntCooldownStartTimeRef = useRef(null);
   const animationFrameRef = useRef(null);
   const huntCooldownAnimationFrameRef = useRef(null);
+  const elapsedTimeRef = useRef(0); // Track accumulated elapsed time for pause/resume
+  const huntCooldownElapsedTimeRef = useRef(0); // Track accumulated elapsed time for hunt cooldown pause/resume
   const startSoundRef = useRef(new Audio('/sounds/start.mp3'));
   const stopSoundRef = useRef(new Audio('/sounds/stop.mp3'));
 
@@ -58,8 +60,9 @@ const EvidenceFilters = () => {
       if (document.visibilityState === 'visible') {
         // Recalculate time left for smudge timer
         if (isPlaying && startTimeRef.current) {
-          const elapsed = Math.floor((Date.now() - startTimeRef.current) / 1000);
-          const newTimeLeft = Math.max(0, 180 - elapsed);
+          const currentElapsed = Math.floor((Date.now() - startTimeRef.current) / 1000);
+          const totalElapsed = elapsedTimeRef.current + currentElapsed;
+          const newTimeLeft = Math.max(0, 180 - totalElapsed);
           setTimeLeft(newTimeLeft);
           if (newTimeLeft === 0) {
             setIsPlaying(false);
@@ -69,8 +72,9 @@ const EvidenceFilters = () => {
 
         // Recalculate time left for hunt cooldown timer
         if (isHuntCooldownPlaying && huntCooldownStartTimeRef.current) {
-          const elapsed = Math.floor((Date.now() - huntCooldownStartTimeRef.current) / 1000);
-          const newTimeLeft = Math.max(0, 25 - elapsed);
+          const currentElapsed = Math.floor((Date.now() - huntCooldownStartTimeRef.current) / 1000);
+          const totalElapsed = huntCooldownElapsedTimeRef.current + currentElapsed;
+          const newTimeLeft = Math.max(0, 25 - totalElapsed);
           setHuntCooldownTimeLeft(newTimeLeft);
           if (newTimeLeft === 0) {
             setIsHuntCooldownPlaying(false);
@@ -123,17 +127,23 @@ const EvidenceFilters = () => {
   // Start/stop smudge timer
   const toggleTimer = () => {
     if (isPlaying) {
+      // Pausing: accumulate elapsed time
       clearInterval(timerRef.current);
+      if (startTimeRef.current) {
+        elapsedTimeRef.current += Math.floor((Date.now() - startTimeRef.current) / 1000);
+      }
       stopSoundRef.current.currentTime = 0;
       stopSoundRef.current.play();
       startTimeRef.current = null;
     } else {
+      // Starting/Resuming: set new start time
       startSoundRef.current.currentTime = 0;
       startSoundRef.current.play();
       startTimeRef.current = Date.now();
       timerRef.current = setInterval(() => {
-        const elapsed = Math.floor((Date.now() - startTimeRef.current) / 1000);
-        const newTimeLeft = Math.max(0, 180 - elapsed);
+        const currentElapsed = Math.floor((Date.now() - startTimeRef.current) / 1000);
+        const totalElapsed = elapsedTimeRef.current + currentElapsed;
+        const newTimeLeft = Math.max(0, 180 - totalElapsed);
         setTimeLeft(newTimeLeft);
         if (newTimeLeft === 0) {
             clearInterval(timerRef.current);
@@ -151,6 +161,7 @@ const EvidenceFilters = () => {
     setIsPlaying(false);
     setTimeLeft(180);
     startTimeRef.current = null;
+    elapsedTimeRef.current = 0; // Reset accumulated elapsed time
     stopSoundRef.current.currentTime = 0;
     stopSoundRef.current.play();
   };
@@ -158,17 +169,23 @@ const EvidenceFilters = () => {
   // Start/stop hunt cooldown timer
   const toggleHuntCooldownTimer = () => {
     if (isHuntCooldownPlaying) {
+      // Pausing: accumulate elapsed time
       clearInterval(huntCooldownTimerRef.current);
+      if (huntCooldownStartTimeRef.current) {
+        huntCooldownElapsedTimeRef.current += Math.floor((Date.now() - huntCooldownStartTimeRef.current) / 1000);
+      }
       stopSoundRef.current.currentTime = 0;
       stopSoundRef.current.play();
       huntCooldownStartTimeRef.current = null;
     } else {
+      // Starting/Resuming: set new start time
       startSoundRef.current.currentTime = 0;
       startSoundRef.current.play();
       huntCooldownStartTimeRef.current = Date.now();
       huntCooldownTimerRef.current = setInterval(() => {
-        const elapsed = Math.floor((Date.now() - huntCooldownStartTimeRef.current) / 1000);
-        const newTimeLeft = Math.max(0, 25 - elapsed);
+        const currentElapsed = Math.floor((Date.now() - huntCooldownStartTimeRef.current) / 1000);
+        const totalElapsed = huntCooldownElapsedTimeRef.current + currentElapsed;
+        const newTimeLeft = Math.max(0, 25 - totalElapsed);
         setHuntCooldownTimeLeft(newTimeLeft);
         if (newTimeLeft === 0) {
             clearInterval(huntCooldownTimerRef.current);
@@ -186,6 +203,7 @@ const EvidenceFilters = () => {
     setIsHuntCooldownPlaying(false);
     setHuntCooldownTimeLeft(25);
     huntCooldownStartTimeRef.current = null;
+    huntCooldownElapsedTimeRef.current = 0; // Reset accumulated elapsed time
     stopSoundRef.current.currentTime = 0;
     stopSoundRef.current.play();
   };
@@ -198,15 +216,7 @@ const EvidenceFilters = () => {
     };
   }, []);
 
-  // Create a map of ghost names to their original indices
-  const originalOrder = React.useMemo(() => {
-    return ghosts.reduce((acc, ghost, index) => {
-      acc[ghost.ghost] = index;
-      return acc;
-    }, {});
-  }, [ghosts]);
-
-  const handleTabChange = (event, newValue) => {
+  const handleTabChange = (_, newValue) => {
     setActiveTab(newValue);
   };
 
@@ -696,18 +706,16 @@ const EvidenceFilters = () => {
                   setSortOrder('default');
 
                   // Stop and reset all timers
-                  if (isPlaying) {
-                    clearInterval(timerRef.current);
-                    setIsPlaying(false);
-                    setTimeLeft(180);
-                    startTimeRef.current = null;
-                  }
-                  if (isHuntCooldownPlaying) {
-                    clearInterval(huntCooldownTimerRef.current);
-                    setIsHuntCooldownPlaying(false);
-                    setHuntCooldownTimeLeft(25);
-                    huntCooldownStartTimeRef.current = null;
-                  }
+                  clearInterval(timerRef.current);
+                  clearInterval(huntCooldownTimerRef.current);
+                  setIsPlaying(false);
+                  setIsHuntCooldownPlaying(false);
+                  setTimeLeft(180);
+                  setHuntCooldownTimeLeft(25);
+                  startTimeRef.current = null;
+                  huntCooldownStartTimeRef.current = null;
+                  elapsedTimeRef.current = 0;
+                  huntCooldownElapsedTimeRef.current = 0;
 
                   // Clear search
                   setSearchQuery('');
