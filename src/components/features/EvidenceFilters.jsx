@@ -259,8 +259,46 @@ const EvidenceFilters = () => {
   const handleHuntEvidenceClick = (evidence) => {
     setSelectedHuntEvidence(prev => {
       const currentState = prev[evidence];
-      // Toggle between undefined (neutral) and true (included)
-      const newState = currentState === undefined ? true : undefined;
+      let newState;
+      if (currentState === undefined) {
+        newState = true; // neutral -> included
+      } else if (currentState === true) {
+        newState = undefined; // included -> neutral
+      } else if (currentState === false) {
+        newState = undefined; // excluded -> neutral
+        
+        // When changing from excluded to neutral, check if we should restore any excluded ghosts
+        const huntEvidence = huntEvidenceList.find(e => e.id === evidence);
+        if (huntEvidence) {
+          const affectedGhosts = huntEvidence.ghost.split(', ');
+          setExcludedGhosts(prevExcluded => {
+            const newExcluded = new Set(prevExcluded);
+            
+            // For each ghost affected by this evidence
+            affectedGhosts.forEach(ghostName => {
+              if (newExcluded.has(ghostName)) {
+                // Check if this ghost has other excluded evidence that would keep it excluded
+                const ghostEvidence = Object.entries(huntEvidenceList)
+                  .filter(([_, evidenceData]) => evidenceData.ghost.split(', ').includes(ghostName))
+                  .map(([evidenceId]) => evidenceId);
+                
+                // Check if any other evidence for this ghost is still excluded (false)
+                const hasOtherExcludedEvidence = ghostEvidence.some(evidenceId => {
+                  if (evidenceId === evidence) return false; // Skip the current evidence we're changing
+                  return prev[evidenceId] === false;
+                });
+                
+                // If no other evidence is excluding this ghost, restore it
+                if (!hasOtherExcludedEvidence) {
+                  newExcluded.delete(ghostName);
+                }
+              }
+            });
+            
+            return newExcluded;
+          });
+        }
+      }
       return { ...prev, [evidence]: newState };
     });
   };
