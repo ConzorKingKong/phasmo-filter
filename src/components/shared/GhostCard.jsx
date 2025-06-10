@@ -33,11 +33,28 @@ const GhostCard = ({
 
   return (
     <Card 
+      className={isSearchMatch ? 'ghost-pulse' : 'card-float'}
       sx={{ 
         height: '100%',
         position: 'relative',
-        border: showBorder && isSearchMatch ? '2px solid white' : 'none',
-        boxShadow: showBorder && isSearchMatch ? '0 0 10px rgba(255, 255, 255, 0.5)' : 'none'
+        border: showBorder && isSearchMatch ? '3px solid #00ff41' : '1px solid rgba(138, 43, 226, 0.2)',
+        boxShadow: showBorder && isSearchMatch ? 
+          '0 0 30px rgba(0, 255, 65, 0.8), inset 0 0 20px rgba(0, 255, 65, 0.1)' : 
+          '0 8px 32px rgba(138, 43, 226, 0.15)',
+        background: isExcluded ? 
+          'linear-gradient(135deg, rgba(255, 7, 58, 0.2) 0%, rgba(22, 33, 62, 0.9) 100%)' :
+          isSearchMatch ?
+          'linear-gradient(135deg, rgba(0, 255, 65, 0.1) 0%, rgba(22, 33, 62, 0.9) 50%, rgba(138, 43, 226, 0.1) 100%)' :
+          'linear-gradient(135deg, rgba(22, 33, 62, 0.9) 0%, rgba(15, 52, 96, 0.8) 100%)',
+        backdropFilter: 'blur(10px)',
+        transition: 'all 0.5s ease',
+        '&:hover': {
+          transform: 'translateY(-5px) scale(1.02)',
+          boxShadow: isSearchMatch ?
+            '0 0 40px rgba(0, 255, 65, 1), inset 0 0 30px rgba(0, 255, 65, 0.2)' :
+            '0 12px 40px rgba(138, 43, 226, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.2)',
+          border: isSearchMatch ? '3px solid #00ff41' : '1px solid rgba(138, 43, 226, 0.5)',
+        }
       }}
     >
       {/* Action Icons */}
@@ -134,16 +151,32 @@ const GhostCard = ({
 
       <CardContent>
         <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-          <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-            {ghost.ghost}
+          <Typography 
+            variant="h6" 
+            component="div" 
+            className="ghost-text"
+            sx={{ 
+              flexGrow: 1,
+              fontFamily: '"Butcherman", cursive',
+              textShadow: '2px 2px 4px rgba(0, 0, 0, 0.8), 0 0 10px rgba(138, 43, 226, 0.5)',
+              color: isExcluded ? '#ff073a' : isSearchMatch ? '#00ff41' : '#ffffff',
+              fontSize: '1.4rem',
+              letterSpacing: '1px',
+              transition: 'all 0.3s ease'
+            }}
+          >
+            👻 {ghost.ghost}
             {ghost.ghost === 'Banshee' && (
               <IconButton 
                 onClick={playBansheeScream}
                 size="small"
                 sx={{ 
-                  color: 'white',
+                  color: '#e94560',
+                  ml: 1,
                   '&:hover': {
-                    color: 'primary.main'
+                    color: '#ff6b8a',
+                    transform: 'scale(1.2)',
+                    filter: 'drop-shadow(0 0 10px rgba(233, 69, 96, 0.8))'
                   }
                 }}
               >

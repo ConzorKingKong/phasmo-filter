@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { Box, Typography, Tabs, Tab, Button, Divider } from '@mui/material';
-import RestartAltIcon from '@mui/icons-material/RestartAlt';
 import { useApp } from '../../context/AppContext';
 import { huntEvidenceList } from '../../constants/huntEvidence';
 import SmudgeTimer from '../timers/SmudgeTimer';
@@ -193,17 +192,44 @@ const EvidenceFilters = () => {
       <Box sx={{ flexGrow: 1, overflow: 'auto' }}>
         {activeTab === 0 ? (
           <Box sx={{ p: 2 }}>
-            <Box sx={{ mb: 2 }}>
-              <Typography variant="h6" gutterBottom>
-                Filters
+            <Box sx={{ mb: 3 }}>
+              <Typography 
+                variant="h5" 
+                gutterBottom
+                className="spooky-title"
+                sx={{
+                  fontFamily: '"Creepster", cursive',
+                  textShadow: '3px 3px 6px rgba(0, 0, 0, 0.9), 0 0 25px rgba(220, 20, 60, 0.8)',
+                  color: '#dc143c',
+                  letterSpacing: '2px',
+                  textAlign: 'center',
+                  mb: 2
+                }}
+              >
+                🔮 Spectral Filters 🔮
               </Typography>
               <Button
                 variant="outlined"
                 color="secondary"
                 onClick={resetAllFilters}
-                startIcon={<RestartAltIcon />}
+                className="spooky-button"
+                sx={{
+                  fontSize: '1.1rem',
+                  px: 3,
+                  py: 1.5,
+                  border: '2px solid #e94560',
+                  color: '#e94560',
+                  display: 'block',
+                  mx: 'auto',
+                  '&:hover': {
+                    border: '2px solid #ff6b8a',
+                    color: '#ff6b8a',
+                    background: 'rgba(233, 69, 96, 0.1)',
+                    transform: 'translateY(-2px) scale(1.05)',
+                  }
+                }}
               >
-                Reset All
+                🔄 Reset All
               </Button>
             </Box>
 

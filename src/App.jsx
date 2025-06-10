@@ -14,11 +14,29 @@ function App() {
     palette: {
       mode: 'dark',
       primary: {
-        main: '#1976d2',
+        main: '#dc143c', // Crimson red
       },
       secondary: {
-        main: '#dc004e',
+        main: '#8b0000', // Dark red
       },
+      success: {
+        main: '#32cd32', // Lime green
+      },
+      warning: {
+        main: '#b22222', // Fire brick
+      },
+      error: {
+        main: '#8b0000', // Dark red
+      },
+      background: {
+        default: 'rgba(10, 10, 10, 0.98)',
+        paper: 'rgba(26, 10, 10, 0.95)',
+      },
+      text: {
+        primary: '#f5f5f5',
+        secondary: 'rgba(245, 245, 245, 0.7)',
+      },
+      divider: 'rgba(139, 0, 0, 0.4)',
     },
     typography: {
       h6: {
@@ -60,14 +78,48 @@ function App() {
         styleOverrides: {
           root: {
             minHeight: '48px !important',
+            background: 'linear-gradient(45deg, rgba(10, 10, 10, 0.98) 0%, rgba(26, 10, 10, 0.95) 100%)',
+            backdropFilter: 'blur(15px)',
+            borderBottom: '2px solid rgba(139, 0, 0, 0.5)',
+            boxShadow: '0 4px 25px rgba(139, 0, 0, 0.4)',
+          },
+        },
+      },
+      MuiAppBar: {
+        styleOverrides: {
+          root: {
+            background: 'transparent',
+            backdropFilter: 'blur(20px)',
+            boxShadow: '0 4px 35px rgba(139, 0, 0, 0.5)',
+          },
+        },
+      },
+      MuiDrawer: {
+        styleOverrides: {
+          paper: {
+            background: 'linear-gradient(180deg, rgba(10, 10, 10, 0.98) 0%, rgba(26, 10, 10, 0.98) 100%)',
+            backdropFilter: 'blur(20px)',
+            borderRight: '2px solid rgba(139, 0, 0, 0.5)',
+            boxShadow: '4px 0 25px rgba(139, 0, 0, 0.4)',
           },
         },
       },
       MuiCard: {
         styleOverrides: {
           root: {
+            background: 'linear-gradient(135deg, rgba(26, 10, 10, 0.95) 0%, rgba(45, 27, 45, 0.9) 100%)',
+            backdropFilter: 'blur(15px)',
+            border: '1px solid rgba(139, 0, 0, 0.3)',
+            boxShadow: '0 8px 35px rgba(139, 0, 0, 0.25), inset 0 1px 0 rgba(245, 245, 245, 0.05)',
+            transition: 'all 0.4s ease',
+            '&:hover': {
+              transform: 'translateY(-3px)',
+              boxShadow: '0 15px 50px rgba(139, 0, 0, 0.4), inset 0 1px 0 rgba(245, 245, 245, 0.1)',
+              border: '1px solid rgba(220, 20, 60, 0.6)',
+            },
             '& .MuiTypography-h6': {
               fontSize: '1.5rem',
+              textShadow: '2px 2px 4px rgba(0, 0, 0, 0.8)',
               '@media (max-width:600px)': {
                 fontSize: '1.25rem',
               },
@@ -86,9 +138,56 @@ function App() {
             },
             '& .MuiChip-root': {
               fontSize: '1.1rem',
+              background: 'linear-gradient(45deg, rgba(139, 0, 0, 0.9), rgba(220, 20, 60, 0.8))',
+              boxShadow: '0 2px 10px rgba(139, 0, 0, 0.5)',
               '@media (max-width:600px)': {
                 fontSize: '0.9rem',
               },
+            },
+          },
+        },
+      },
+      MuiButton: {
+        styleOverrides: {
+          root: {
+            textTransform: 'none',
+            borderRadius: '8px',
+            boxShadow: '0 4px 20px rgba(139, 0, 0, 0.3)',
+            transition: 'all 0.4s ease',
+            '&:hover': {
+              transform: 'translateY(-2px)',
+              boxShadow: '0 8px 30px rgba(139, 0, 0, 0.6)',
+            },
+          },
+          contained: {
+            background: 'linear-gradient(45deg, #8b0000 30%, #dc143c 90%)',
+            '&:hover': {
+              background: 'linear-gradient(45deg, #b22222 30%, #ff6347 90%)',
+            },
+          },
+        },
+      },
+      MuiTab: {
+        styleOverrides: {
+          root: {
+            textTransform: 'none',
+            fontSize: '1.1rem',
+            fontWeight: 500,
+            textShadow: '2px 2px 4px rgba(0, 0, 0, 0.9)',
+            '&.Mui-selected': {
+              color: '#dc143c',
+              textShadow: '0 0 15px rgba(220, 20, 60, 0.9)',
+            },
+          },
+        },
+      },
+      MuiTabs: {
+        styleOverrides: {
+          root: {
+            '& .MuiTabs-indicator': {
+              background: 'linear-gradient(45deg, #8b0000, #dc143c)',
+              height: '3px',
+              boxShadow: '0 0 15px rgba(139, 0, 0, 0.9)',
             },
           },
         },
@@ -137,9 +236,21 @@ function App() {
                       <MenuIcon />
                     </IconButton>
                 )}
-                <Typography variant="subtitle1" noWrap component="div">
-                  Phasmo Filter — Supports v1.000.015
-                    </Typography>
+                <Typography 
+                  variant="subtitle1" 
+                  noWrap 
+                  component="div"
+                  className="spooky-title"
+                  sx={{ 
+                    fontFamily: '"Creepster", cursive',
+                    textShadow: '3px 3px 6px rgba(0, 0, 0, 0.9), 0 0 25px rgba(220, 20, 60, 0.8)',
+                    color: '#dc143c',
+                    letterSpacing: '2px',
+                    fontSize: { xs: '1.2rem', sm: '1.5rem' }
+                  }}
+                >
+                  👻 Phasmo Filter — v1.000.015 🔮
+                </Typography>
                   </Toolbar>
                 </AppBar>
             <Box sx={{ display: 'flex', flexGrow: 1, overflow: 'hidden' }}>

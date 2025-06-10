@@ -47,10 +47,20 @@ const HuntSanityFilter = ({
   return (
     <>
       <Box sx={{ display: 'flex', alignItems: 'center', mb: 1, cursor: 'pointer' }} onClick={onToggleExpanded}>
-        <Typography variant="h6" sx={{ flexGrow: 1 }}>
-          Hunt Sanity
+        <Typography 
+          variant="h6" 
+          className="ghost-text"
+          sx={{ 
+            flexGrow: 1,
+            fontFamily: '"Butcherman", cursive',
+            textShadow: '2px 2px 4px rgba(0, 0, 0, 0.8), 0 0 10px rgba(138, 43, 226, 0.5)',
+            color: '#ffffff',
+            letterSpacing: '1px'
+          }}
+        >
+          🧠 Hunt Sanity
         </Typography>
-        <IconButton>
+        <IconButton sx={{ color: '#8a2be2' }}>
           {expanded ? <ExpandLessIcon /> : <ExpandMoreIcon />}
         </IconButton>
       </Box>
