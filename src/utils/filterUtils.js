@@ -1,19 +1,31 @@
 // Shared filtering utility functions
 import { ghostCanHaveEvidence, ghostCanHaveHuntEvidence } from './ghostUtils';
 
+// Memoize Object.entries calls
+const memoizedEntries = new Map();
+const getEntries = (obj) => {
+  const key = JSON.stringify(obj);
+  if (!memoizedEntries.has(key)) {
+    memoizedEntries.set(key, Object.entries(obj));
+  }
+  return memoizedEntries.get(key);
+};
+
 export const checkGhostFilters = (ghost, filters) => {
   const { selectedEvidence, selectedSpeed, selectedHuntEvidence, selectedSanity, huntEvidenceList } = filters;
 
-  // Check evidence filters
-  const evidenceMatch = Object.entries(selectedEvidence).every(([evidence, state]) => {
+  // Check evidence filters with memoized entries
+  const evidenceEntries = getEntries(selectedEvidence);
+  const evidenceMatch = evidenceEntries.every(([evidence, state]) => {
     if (state === undefined) return true;
     if (state === true) return ghostCanHaveEvidence(ghost, evidence);
     if (state === false) return !ghostCanHaveEvidence(ghost, evidence);
     return true;
   });
 
-  // Check speed filters
-  const speedMatch = Object.entries(selectedSpeed).every(([speedType, state]) => {
+  // Check speed filters with memoized entries
+  const speedEntries = getEntries(selectedSpeed);
+  const speedMatch = speedEntries.every(([speedType, state]) => {
     if (state === undefined) return true;
     
     // The Mimic can mimic any ghost's speed, so it passes all speed filters when included
@@ -54,16 +66,18 @@ export const checkGhostFilters = (ghost, filters) => {
     return true;
   });
 
-  // Check hunt evidence filters
-  const huntEvidenceMatch = Object.entries(selectedHuntEvidence).every(([evidence, state]) => {
+  // Check hunt evidence filters with memoized entries
+  const huntEvidenceEntries = getEntries(selectedHuntEvidence);
+  const huntEvidenceMatch = huntEvidenceEntries.every(([evidence, state]) => {
     if (state === undefined) return true;
     if (state === true) return ghostCanHaveHuntEvidence(ghost, evidence, huntEvidenceList);
     if (state === false) return !ghostCanHaveHuntEvidence(ghost, evidence, huntEvidenceList);
     return true;
   });
 
-  // Check sanity filters
-  const sanityMatch = Object.entries(selectedSanity).every(([sanityType, state]) => {
+  // Check sanity filters with memoized entries
+  const sanityEntries = getEntries(selectedSanity);
+  const sanityMatch = sanityEntries.every(([sanityType, state]) => {
     if (state === undefined) return true;
     
     const sanity = parseFloat(ghost.hunt_sanity) || 0;

@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, memo } from 'react';
 import { Box, Card, CardContent, Typography, Chip, Divider, IconButton, Collapse } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import CloseIcon from '@mui/icons-material/Close';
@@ -39,20 +39,20 @@ const GhostCard = ({
         position: 'relative',
         border: showBorder && isSearchMatch ? '3px solid #00ff41' : '1px solid rgba(138, 43, 226, 0.2)',
         boxShadow: showBorder && isSearchMatch ? 
-          '0 0 30px rgba(0, 255, 65, 0.8), inset 0 0 20px rgba(0, 255, 65, 0.1)' : 
-          '0 8px 32px rgba(138, 43, 226, 0.15)',
+          '0 0 15px rgba(0, 255, 65, 0.6)' : 
+          '0 4px 15px rgba(138, 43, 226, 0.15)',
         background: isExcluded ? 
           'linear-gradient(135deg, rgba(255, 7, 58, 0.2) 0%, rgba(22, 33, 62, 0.9) 100%)' :
           isSearchMatch ?
           'linear-gradient(135deg, rgba(0, 255, 65, 0.1) 0%, rgba(22, 33, 62, 0.9) 50%, rgba(138, 43, 226, 0.1) 100%)' :
           'linear-gradient(135deg, rgba(22, 33, 62, 0.9) 0%, rgba(15, 52, 96, 0.8) 100%)',
-        backdropFilter: 'blur(10px)',
+        backdropFilter: 'blur(5px)',
         transition: 'all 0.5s ease',
         '&:hover': {
-          transform: 'translateY(-5px) scale(1.02)',
+          transform: 'translateY(-2px)',
           boxShadow: isSearchMatch ?
-            '0 0 40px rgba(0, 255, 65, 1), inset 0 0 30px rgba(0, 255, 65, 0.2)' :
-            '0 12px 40px rgba(138, 43, 226, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.2)',
+            '0 0 20px rgba(0, 255, 65, 0.8)' :
+            '0 8px 25px rgba(138, 43, 226, 0.25)',
           border: isSearchMatch ? '3px solid #00ff41' : '1px solid rgba(138, 43, 226, 0.5)',
         }
       }}
@@ -191,30 +191,42 @@ const GhostCard = ({
             Evidence
           </Typography>
           <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-            {ghost.evidence.map((evidence) => (
-              <Chip
-                key={evidence}
-                label={getEvidenceLabel(evidence)}
-                size="small"
-                sx={{
-                  ...(ghost.nightmare_evidence?.includes(evidence) && {
-                    backgroundColor: 'primary.main',
-                    color: 'white',
-                    '&:hover': {
-                      backgroundColor: 'primary.dark'
-                    }
-                  })
-                }}
-              />
-            ))}
+            {ghost.evidence.map((evidence) => {
+              const isNightmareEvidence = ghost.nightmare_evidence === evidence;
+              return (
+                <Chip
+                  key={evidence}
+                  label={getEvidenceLabel(evidence)}
+                  size="small"
+                  sx={{
+                    ...(isNightmareEvidence && {
+                      backgroundColor: '#00ff41',
+                      color: '#00ff41',
+                      border: '1px solid #00ff41',
+                      fontWeight: 'bold',
+                      '&:hover': {
+                        backgroundColor: '#32ff51',
+                        color: '#32ff51',
+                      }
+                    })
+                  }}
+                />
+              );
+            })}
             {/* Mimic special case - show Ghost Orbs */}
             {ghost.ghost === 'The Mimic' && !ghost.evidence.includes('Ghost Orbs') && (
               <Chip
                 label={getEvidenceLabel('Ghost Orbs')}
                 size="small"
                 sx={{
-                  backgroundColor: 'secondary.main',
-                  color: 'white'
+                  backgroundColor: '#00ff41',
+                  color: '#00ff41',
+                  border: '1px solid #00ff41',
+                  fontWeight: 'bold',
+                  '&:hover': {
+                    backgroundColor: '#32ff51',
+                    color: '#32ff51',
+                  }
                 }}
               />
             )}
@@ -272,4 +284,4 @@ const GhostCard = ({
   );
 };
 
-export default GhostCard;
+export default memo(GhostCard);

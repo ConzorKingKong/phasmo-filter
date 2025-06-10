@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react'
+import React, { createContext, useContext, useState, useEffect, useMemo } from 'react'
 import { useTimerWorker } from '../hooks/useTimerWorker'
 
 const AppContext = createContext()
@@ -118,7 +118,7 @@ export const AppProvider = ({ children }) => {
     }))
   }
 
-  const value = {
+  const value = useMemo(() => ({
     ghosts,
     setGhosts,
     selectedEvidence,
@@ -146,7 +146,22 @@ export const AppProvider = ({ children }) => {
     huntCooldownTimer,
     setHuntCooldownTimer,
     timerWorker
-  }
+  }), [
+    ghosts,
+    selectedEvidence,
+    selectedSpeed,
+    selectedHuntEvidence,
+    selectedSanity,
+    searchQuery,
+    excludedGhosts,
+    sortOrder,
+    settings,
+    isLoading,
+    error,
+    smudgeTimer,
+    huntCooldownTimer,
+    timerWorker
+  ])
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>
 }
