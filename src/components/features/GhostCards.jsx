@@ -61,6 +61,21 @@ const GhostCards = () => {
     return labels[evidence] || evidence;
   };
 
+  // Helper function to check if a ghost can have specific evidence (includes Mimic special case)
+  const ghostCanHaveEvidence = (ghost, evidence) => {
+    // Check official evidence
+    if (ghost.evidence.includes(evidence)) {
+      return true;
+    }
+    
+    // Special case: Mimic always shows Ghost Orbs as additional evidence
+    if (ghost.ghost === 'The Mimic' && evidence === 'Ghost Orbs') {
+      return true;
+    }
+    
+    return false;
+  };
+
   const huntEvidenceMap = {
     'hunts_after_smudge_1': ['Demon'],
     'hunts_after_smudge_3': ['Spirit'],
@@ -104,8 +119,8 @@ const GhostCards = () => {
     // Check evidence filters
     const evidenceMatch = Object.entries(selectedEvidence).every(([evidence, state]) => {
       if (state === undefined) return true;
-      if (state === true) return ghost.evidence.includes(evidence);
-      if (state === false) return !ghost.evidence.includes(evidence);
+      if (state === true) return ghostCanHaveEvidence(ghost, evidence);
+      if (state === false) return !ghostCanHaveEvidence(ghost, evidence);
       return true;
     });
 

@@ -399,8 +399,118 @@ const EvidenceFilters = () => {
     if (!searchQuery) return false;
     return ghosts.some(ghost => 
       ghost.ghost.toLowerCase().includes(searchQuery.toLowerCase().trim()) && 
-      ghost.evidence.includes(evidence)
+      ghostCanHaveEvidence(ghost, evidence)
     );
+  };
+
+  // Helper function to check if a ghost can have specific evidence (includes Mimic special case)
+  const ghostCanHaveEvidence = (ghost, evidence) => {
+    // Check official evidence
+    if (ghost.evidence.includes(evidence)) {
+      return true;
+    }
+    
+    // Special case: Mimic always shows Ghost Orbs as additional evidence
+    if (ghost.ghost === 'The Mimic' && evidence === 'Ghost Orbs') {
+      return true;
+    }
+    
+    return false;
+  };
+
+  const isEvidenceImpossible = (evidenceToCheck) => {
+    // Get all ghosts that would pass current filters (excluding the evidence we're checking)
+    const remainingGhosts = ghosts.filter(ghost => {
+      // Check evidence filters (excluding the evidence we're checking)
+      const evidenceMatch = Object.entries(selectedEvidence).every(([evidence, state]) => {
+        if (evidence === evidenceToCheck || state === undefined) return true;
+        if (state === true) return ghostCanHaveEvidence(ghost, evidence);
+        if (state === false) return !ghostCanHaveEvidence(ghost, evidence);
+        return true;
+      });
+
+      // Check speed filters
+      const speedMatch = Object.entries(selectedSpeed).every(([speedType, state]) => {
+        if (state === undefined) return true;
+        
+        const minSpeed = parseFloat(ghost.min_speed);
+        const maxSpeed = parseFloat(ghost.max_speed);
+        const altSpeed = parseFloat(ghost.alt_speed);
+        const normalSpeed = 1.7;
+        
+        const speeds = [];
+        if (!isNaN(minSpeed)) speeds.push(minSpeed);
+        if (!isNaN(maxSpeed)) speeds.push(maxSpeed);
+        if (!isNaN(altSpeed)) speeds.push(altSpeed);
+        
+        if (speeds.length === 0) return true;
+        
+        switch (speedType) {
+          case 'slow':
+            if (state === true) return speeds.some(speed => speed < normalSpeed);
+            if (state === false) return speeds.every(speed => speed >= normalSpeed);
+            break;
+          case 'normal':
+            if (state === true) return speeds.every(speed => speed === normalSpeed);
+            if (state === false) return speeds.some(speed => speed !== normalSpeed);
+            break;
+          case 'fast':
+            if (state === true) return speeds.some(speed => speed > normalSpeed);
+            if (state === false) return speeds.every(speed => speed <= normalSpeed);
+            break;
+          case 'los':
+            if (state === true) return ghost.has_los === true;
+            if (state === false) return ghost.has_los === false;
+            break;
+        }
+        return true;
+      });
+
+      // Check hunt evidence filters
+      const huntEvidenceMatch = Object.entries(selectedHuntEvidence).every(([evidence, state]) => {
+        if (state === undefined) return true;
+        const huntEvidence = huntEvidenceList.find(e => e.id === evidence);
+        if (!huntEvidence) return true;
+        const ghostNames = huntEvidence.ghost.split(', ');
+        if (state === true) return ghostNames.includes(ghost.ghost);
+        if (state === false) return !ghostNames.includes(ghost.ghost);
+        return true;
+      });
+
+      // Check sanity filters
+      const sanityMatch = Object.entries(selectedSanity).every(([sanityType, state]) => {
+        if (state === undefined) return true;
+        
+        const sanity = parseFloat(ghost.hunt_sanity) || 0;
+        const sanityLow = parseFloat(ghost.hunt_sanity_low) || sanity;
+        const sanityHigh = parseFloat(ghost.hunt_sanity_high) || sanity;
+        
+        let hasThisSanityRange = false;
+        switch (sanityType) {
+          case 'high':
+            hasThisSanityRange = sanityHigh >= 80 && sanityHigh <= 100;
+            break;
+          case 'medium':
+            hasThisSanityRange = sanityHigh >= 60 && sanityHigh <= 80;
+            break;
+          case 'fifty':
+            hasThisSanityRange = sanity === 50;
+            break;
+          case 'low':
+            hasThisSanityRange = sanityLow > 0 && sanityLow <= 40;
+            break;
+        }
+        
+        if (state === true) return hasThisSanityRange;
+        if (state === false) return !hasThisSanityRange;
+        return true;
+      });
+
+      return evidenceMatch && speedMatch && huntEvidenceMatch && sanityMatch;
+    });
+
+    // Check if any remaining ghosts have this evidence
+    return !remainingGhosts.some(ghost => ghostCanHaveEvidence(ghost, evidenceToCheck));
   };
 
   const isSpeedInSearchResults = (speedType) => {
@@ -475,8 +585,8 @@ const EvidenceFilters = () => {
       // Check evidence filters
       const evidenceMatch = Object.entries(selectedEvidence).every(([evidence, state]) => {
         if (state === undefined) return true;
-        if (state === true) return ghost.evidence.includes(evidence);
-        if (state === false) return !ghost.evidence.includes(evidence);
+        if (state === true) return ghostCanHaveEvidence(ghost, evidence);
+        if (state === false) return !ghostCanHaveEvidence(ghost, evidence);
         return true;
       });
 
@@ -749,21 +859,11 @@ const EvidenceFilters = () => {
               ]
                 .slice()
                 .sort((a, b) => {
-                  // First sort by filtered status
-                  const aFiltered = !ghosts.some(ghost => 
-                    ghost.evidence.includes(a) && 
-                    !Object.entries(selectedEvidence).some(([evidence, state]) => 
-                      state === false && ghost.evidence.includes(evidence)
-                    )
-                  );
-                  const bFiltered = !ghosts.some(ghost => 
-                    ghost.evidence.includes(b) && 
-                    !Object.entries(selectedEvidence).some(([evidence, state]) => 
-                      state === false && ghost.evidence.includes(evidence)
-                    )
-                  );
-                  if (aFiltered !== bFiltered) {
-                    return aFiltered ? 1 : -1;
+                  // First sort by impossible status
+                  const aImpossible = isEvidenceImpossible(a);
+                  const bImpossible = isEvidenceImpossible(b);
+                  if (aImpossible !== bImpossible) {
+                    return aImpossible ? 1 : -1;
                   }
 
                   // Then sort by evidence state (neutral first)
@@ -796,12 +896,7 @@ const EvidenceFilters = () => {
                   return 0;
                 })
                 .map((evidence) => {
-                  const isFiltered = !ghosts.some(ghost => 
-                    ghost.evidence.includes(evidence) && 
-                    !Object.entries(selectedEvidence).some(([evidence, state]) => 
-                      state === false && ghost.evidence.includes(evidence)
-                    )
-                  );
+                  const isImpossible = isEvidenceImpossible(evidence);
                   const isExcluded = selectedEvidence[evidence] === false;
                   const isIncluded = selectedEvidence[evidence] === true;
                   return (
@@ -818,16 +913,16 @@ const EvidenceFilters = () => {
                           bgcolor: isExcluded ? 'error.dark' : isIncluded ? 'success.dark' : 'action.hover',
                         },
                         cursor: 'pointer',
-                        opacity: isFiltered ? 0.5 : 1,
+                        opacity: isImpossible ? 0.5 : 1,
                       }}
                       onClick={() => handleEvidenceClick(evidence)}
                     >
                       <Checkbox
                         checked={isIncluded}
                         sx={{
-                          color: isFiltered ? 'text.disabled' : 'text.secondary',
+                          color: isImpossible ? 'text.disabled' : 'text.secondary',
                           '&.Mui-checked': {
-                            color: isFiltered ? 'text.disabled' : 'success.main',
+                            color: isImpossible ? 'text.disabled' : 'success.main',
                           },
                         }}
                       />
@@ -835,7 +930,7 @@ const EvidenceFilters = () => {
                         flexGrow: 1,
                         display: 'flex',
                         alignItems: 'center',
-                        color: isFiltered ? 'text.disabled' :
+                        color: isImpossible ? 'text.disabled' :
                                isExcluded ? 'error.main' :
                                isIncluded ? 'success.main' :
                                'text.primary'
@@ -860,7 +955,7 @@ const EvidenceFilters = () => {
                           '&:hover': {
                             color: 'error.main',
                           },
-                          opacity: isFiltered ? 0.5 : 1,
+                          opacity: isImpossible ? 0.5 : 1,
                         }}
                       >
                         <CancelIcon fontSize="small" />
