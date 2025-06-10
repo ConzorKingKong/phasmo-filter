@@ -5,5 +5,3 @@ This project allows you to filter ghosts in phasmophobia. Unlike others, it has 
 https://phasmo-filter.pages.dev/
 
 This project uses vite and react and is deployed to Cloudflare via Cloudflare Workers
-
-TODO improve mimic filtering
