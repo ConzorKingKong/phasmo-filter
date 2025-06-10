@@ -26,6 +26,11 @@ const SpeedFilter = ({
     return ghosts.some(ghost => {
       if (!ghost.ghost.toLowerCase().includes(searchQuery.toLowerCase().trim())) return false;
       
+      // The Mimic can mimic any ghost's speed, so it matches all speed filters
+      if (ghost.ghost === 'The Mimic') {
+        return true;
+      }
+      
       const minSpeed = parseFloat(ghost.min_speed);
       const maxSpeed = parseFloat(ghost.max_speed);
       const altSpeed = parseFloat(ghost.alt_speed);
@@ -80,6 +85,11 @@ const SpeedFilter = ({
             .map((speed) => {
               const isFiltered = !ghosts.some(ghost => {
                 if (!ghost.ghost.toLowerCase().includes(searchQuery.toLowerCase().trim())) return false;
+                
+                // The Mimic can mimic any ghost's speed, so it matches all speed filters
+                if (ghost.ghost === 'The Mimic') {
+                  return true;
+                }
                 
                 const minSpeed = parseFloat(ghost.min_speed);
                 const maxSpeed = parseFloat(ghost.max_speed);

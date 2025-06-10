@@ -1,7 +1,10 @@
 import React from 'react';
-import Timer from './Timer';
+import { useApp } from '../../context/AppContext';
+import WorkerTimer from './WorkerTimer';
 
 const HuntCooldownTimer = () => {
+  const { huntCooldownTimer, setHuntCooldownTimer, timerWorker } = useApp();
+  
   const description = (
     <>
       Demon - 20 seconds<br />
@@ -10,7 +13,11 @@ const HuntCooldownTimer = () => {
   );
 
   return (
-    <Timer
+    <WorkerTimer
+      timerId="huntCooldown"
+      timerState={huntCooldownTimer}
+      setTimerState={setHuntCooldownTimer}
+      timerWorker={timerWorker}
       initialTime={25} // 25 seconds
       title="Hunt Cooldown"
       description={description}

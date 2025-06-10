@@ -25,7 +25,10 @@ const EvidenceFilters = () => {
     setExcludedGhosts,
     ghosts,
     sortOrder,
-    setSortOrder
+    setSortOrder,
+    setSmudgeTimer,
+    setHuntCooldownTimer,
+    timerWorker
   } = useApp();
 
   const [activeTab, setActiveTab] = useState(0);
@@ -169,6 +172,10 @@ const EvidenceFilters = () => {
     setExcludedGhosts(new Set());
     setSortOrder('default');
     setSearchQuery('');
+    
+    // Reset timers
+    timerWorker.resetTimer('smudge', 180);
+    timerWorker.resetTimer('huntCooldown', 25);
   };
 
   return (

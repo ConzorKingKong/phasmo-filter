@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react'
+import { useTimerWorker } from '../hooks/useTimerWorker'
 
 const AppContext = createContext()
 
@@ -19,6 +20,21 @@ export const AppProvider = ({ children }) => {
   })
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState(null)
+  
+  // Timer worker
+  const timerWorker = useTimerWorker()
+  
+  // Timer states
+  const [smudgeTimer, setSmudgeTimer] = useState({
+    isPlaying: false,
+    timeLeft: 180, // 3 minutes in seconds
+    elapsedTime: 0
+  })
+  const [huntCooldownTimer, setHuntCooldownTimer] = useState({
+    isPlaying: false,
+    timeLeft: 25, // 25 seconds
+    elapsedTime: 0
+  })
 
   useEffect(() => {
     const fetchGhosts = async () => {
@@ -38,6 +54,62 @@ export const AppProvider = ({ children }) => {
 
     fetchGhosts()
   }, [])
+
+  // Set up timer worker listeners
+  useEffect(() => {
+    const smudgeCleanup = timerWorker.addListener('smudge', (data) => {
+      if (data.paused) {
+        setSmudgeTimer(prev => ({
+          ...prev,
+          isPlaying: false,
+          elapsedTime: data.totalElapsed
+        }))
+      } else if (data.stopped || data.reset) {
+        setSmudgeTimer(prev => ({
+          ...prev,
+          isPlaying: false,
+          timeLeft: data.timeLeft || 180,
+          elapsedTime: 0
+        }))
+      } else {
+        setSmudgeTimer(prev => ({
+          ...prev,
+          isPlaying: !data.isFinished,
+          timeLeft: data.timeLeft,
+          elapsedTime: data.totalElapsed
+        }))
+      }
+    })
+
+    const huntCleanup = timerWorker.addListener('huntCooldown', (data) => {
+      if (data.paused) {
+        setHuntCooldownTimer(prev => ({
+          ...prev,
+          isPlaying: false,
+          elapsedTime: data.totalElapsed
+        }))
+      } else if (data.stopped || data.reset) {
+        setHuntCooldownTimer(prev => ({
+          ...prev,
+          isPlaying: false,
+          timeLeft: data.timeLeft || 25,
+          elapsedTime: 0
+        }))
+      } else {
+        setHuntCooldownTimer(prev => ({
+          ...prev,
+          isPlaying: !data.isFinished,
+          timeLeft: data.timeLeft,
+          elapsedTime: data.totalElapsed
+        }))
+      }
+    })
+
+    return () => {
+      smudgeCleanup()
+      huntCleanup()
+    }
+  }, [timerWorker])
 
   const updateSettings = (key, value) => {
     setSettings(prev => ({
@@ -68,7 +140,12 @@ export const AppProvider = ({ children }) => {
     updateSettings,
     isLoading,
     setIsLoading,
-    error
+    error,
+    smudgeTimer,
+    setSmudgeTimer,
+    huntCooldownTimer,
+    setHuntCooldownTimer,
+    timerWorker
   }
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>

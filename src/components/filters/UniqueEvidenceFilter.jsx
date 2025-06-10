@@ -43,7 +43,7 @@ const UniqueEvidenceFilter = ({
     <>
       <Box sx={{ display: 'flex', alignItems: 'center', mb: 1, cursor: 'pointer' }} onClick={onToggleExpanded}>
         <Typography variant="h6" sx={{ flexGrow: 1 }}>
-          Unique Evidence/Traits
+          Unique Evidence
         </Typography>
         <IconButton>
           {expanded ? <ExpandLessIcon /> : <ExpandMoreIcon />}

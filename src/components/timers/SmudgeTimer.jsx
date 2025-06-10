@@ -1,7 +1,10 @@
 import React from 'react';
-import Timer from './Timer';
+import { useApp } from '../../context/AppContext';
+import WorkerTimer from './WorkerTimer';
 
 const SmudgeTimer = () => {
+  const { smudgeTimer, setSmudgeTimer, timerWorker } = useApp();
+  
   const description = (
     <>
       Demon - 1 minute<br />
@@ -11,7 +14,11 @@ const SmudgeTimer = () => {
   );
 
   return (
-    <Timer
+    <WorkerTimer
+      timerId="smudge"
+      timerState={smudgeTimer}
+      setTimerState={setSmudgeTimer}
+      timerWorker={timerWorker}
       initialTime={180} // 3 minutes in seconds
       title="Smudge Timer"
       description={description}

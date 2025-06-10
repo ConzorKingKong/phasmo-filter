@@ -15,11 +15,10 @@ const HuntSanityFilter = ({
   onToggleExpanded
 }) => {
   const sanityTypes = [
-    { id: 'very_low', label: '< 30%' },
-    { id: 'low', label: '30-49%' },
-    { id: 'average', label: '50-59%' },
-    { id: 'high', label: '60-80%' },
-    { id: 'very_high', label: '> 80%' }
+    { id: 'high', label: '100%-80%' },
+    { id: 'medium', label: '80%-60%' },
+    { id: 'fifty', label: '50%' },
+    { id: 'low', label: '< 40%' }
   ];
 
   const isSanityInSearchResults = (sanityType) => {
@@ -27,19 +26,19 @@ const HuntSanityFilter = ({
     return ghosts.some(ghost => {
       if (!ghost.ghost.toLowerCase().includes(searchQuery.toLowerCase().trim())) return false;
       
-      const sanityThreshold = parseInt(ghost.hunt_sanity) || 50;
+      const sanity = parseFloat(ghost.hunt_sanity) || 0;
+      const sanityLow = parseFloat(ghost.hunt_sanity_low) || sanity;
+      const sanityHigh = parseFloat(ghost.hunt_sanity_high) || sanity;
       
       switch (sanityType) {
-        case 'very_low':
-          return sanityThreshold < 30;
-        case 'low':
-          return sanityThreshold >= 30 && sanityThreshold < 50;
-        case 'average':
-          return sanityThreshold >= 50 && sanityThreshold < 60;
         case 'high':
-          return sanityThreshold >= 60 && sanityThreshold <= 80;
-        case 'very_high':
-          return sanityThreshold > 80;
+          return sanityHigh >= 80 && sanityHigh <= 100;
+        case 'medium':
+          return sanityHigh >= 60 && sanityHigh <= 80;
+        case 'fifty':
+          return sanity === 50;
+        case 'low':
+          return sanityLow > 0 && sanityLow <= 40;
       }
       return false;
     });
@@ -74,19 +73,19 @@ const HuntSanityFilter = ({
               const isFiltered = !ghosts.some(ghost => {
                 if (!ghost.ghost.toLowerCase().includes(searchQuery.toLowerCase().trim())) return false;
                 
-                const sanityThreshold = parseInt(ghost.hunt_sanity) || 50;
+                const sanityValue = parseFloat(ghost.hunt_sanity) || 0;
+                const sanityLow = parseFloat(ghost.hunt_sanity_low) || sanityValue;
+                const sanityHigh = parseFloat(ghost.hunt_sanity_high) || sanityValue;
                 
                 switch (sanity.id) {
-                  case 'very_low':
-                    return sanityThreshold < 30;
-                  case 'low':
-                    return sanityThreshold >= 30 && sanityThreshold < 50;
-                  case 'average':
-                    return sanityThreshold >= 50 && sanityThreshold < 60;
                   case 'high':
-                    return sanityThreshold >= 60 && sanityThreshold <= 80;
-                  case 'very_high':
-                    return sanityThreshold > 80;
+                    return sanityHigh >= 80 && sanityHigh <= 100;
+                  case 'medium':
+                    return sanityHigh >= 60 && sanityHigh <= 80;
+                  case 'fifty':
+                    return sanityValue === 50;
+                  case 'low':
+                    return sanityLow > 0 && sanityLow <= 40;
                 }
                 return false;
               });

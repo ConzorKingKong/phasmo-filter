@@ -16,6 +16,11 @@ export const checkGhostFilters = (ghost, filters) => {
   const speedMatch = Object.entries(selectedSpeed).every(([speedType, state]) => {
     if (state === undefined) return true;
     
+    // The Mimic can mimic any ghost's speed, so it passes all speed filters when included
+    if (ghost.ghost === 'The Mimic' && state === true) {
+      return true;
+    }
+    
     const minSpeed = parseFloat(ghost.min_speed);
     const maxSpeed = parseFloat(ghost.max_speed);
     const altSpeed = parseFloat(ghost.alt_speed);
@@ -128,6 +133,11 @@ export const isGhostFilteredOut = (ghostName, filters, ghosts) => {
 const checkSpeedFilters = (ghost, selectedSpeed) => {
   return Object.entries(selectedSpeed).every(([speedType, state]) => {
     if (state === undefined) return true;
+    
+    // The Mimic can mimic any ghost's speed, so it passes all speed filters when included
+    if (ghost.ghost === 'The Mimic' && state === true) {
+      return true;
+    }
     
     const minSpeed = parseFloat(ghost.min_speed);
     const maxSpeed = parseFloat(ghost.max_speed);
